@@ -1,0 +1,19 @@
+Package: mautils
+Type: Package
+Title: Utilities to facilitate automation of meta-analysis
+Version: 0.1
+Date: 2015-09-23
+Authors@R: person("Richard", "Birnie", email="richard.birnie@googlemail.com", role=c("aut", "cre"))
+Description: More about what it does (maybe more than one line)
+License: GPL-3
+LazyData: TRUE
+Imports: dplyr (>= 0.4.3),
+    stringr (>= 1.0.0),
+    readxl (>= 0.1.0),
+    xlsx (>= 0.5.7),
+    meta (>= 4.3.0),
+    ggplot2 (>= 1.0.1),
+    scales (>= 0.3.0),
+    igraph (>= 1.0.1),
+    rbutils (>= 0.1),
+    gemtc (>= 0.7)
