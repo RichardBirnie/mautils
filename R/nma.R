@@ -69,6 +69,8 @@ makeTab = function(results, coding, rounding = 2, reportOrder = 'default', ...) 
   reportTab = as.data.frame(t(reportTab))
 }
 
+summariseMTC = getS3method('summary', 'mtc.result')
+
 calcAllPairs = function(mtcRes, expon = FALSE, ...) {
   #This function takes two arguments
   #mtcRes is an object of class mtc.result, i.e. the output from mtc.run in the
@@ -76,9 +78,10 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
   #expon controls whether the output is exponentiated or not. If the input is
   #log OR (or HR or RR)
   # set this to TRUE to get output on the linear scale
+
   tid = as.integer(mtcRes$model$network$treatments$id)
   for (t in 1:length(tid)) {
-    re = suppressWarnings(gemtc::summary(gemtc::relative.effect(
+    re = suppressWarnings(summariseMTC(gemtc::relative.effect(
       mtcRes, t1 = tid[t], preserve.extra = FALSE
     )))
 
@@ -107,7 +110,7 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
 
 extractModelFit = function(mtcRes) {
   #mtcRes - an mtc.result object as returned by mtc.run from the gemtc package
-  modelSummary = gemtc::summary(mtcRes)
+  modelSummary = summariseMTC(mtcRes)
   dic = data.frame(
     'Mean' = modelSummary$DIC,
     'SD' = NA,
@@ -127,7 +130,6 @@ extractModelFit = function(mtcRes) {
 }
 
 extractResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
-  require(xlsx)
   #calculate all pairwise effects
   pairwiseResults = calcAllPairs(res, ...)
   rbutils::saveXLSX(

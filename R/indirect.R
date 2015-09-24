@@ -29,7 +29,7 @@ getPathsByLength = function(g, len = 2) {
   #two treatments then all possible combinations are returned g - a graph object
   #as produced by igraph len - the length of path to be identified (Default=2).
   #Connecting 3 nodes has a path length of two
-  sp = shortest.paths(g)
+  sp = igraph::shortest.paths(g)
   sp[upper.tri(sp,TRUE)] = NA
   wp = which(sp == len, arr.ind = TRUE)
   mapply(function(a,b)

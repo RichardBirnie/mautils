@@ -17,3 +17,4 @@ Imports: dplyr (>= 0.4.3),
     igraph (>= 1.0.1),
     rbutils (>= 0.1),
     gemtc (>= 0.7)
+Depends: gemtc (>= 0.7)
