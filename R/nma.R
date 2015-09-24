@@ -69,7 +69,7 @@ makeTab = function(results, coding, rounding = 2, reportOrder = 'default', ...) 
   reportTab = as.data.frame(t(reportTab))
 }
 
-summariseMTC = getS3method('summary', 'mtc.result')
+.summariseMTC = getS3method('summary', 'mtc.result')
 
 calcAllPairs = function(mtcRes, expon = FALSE, ...) {
   #This function takes two arguments
@@ -81,7 +81,7 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
 
   tid = as.integer(mtcRes$model$network$treatments$id)
   for (t in 1:length(tid)) {
-    re = suppressWarnings(summariseMTC(gemtc::relative.effect(
+    re = suppressWarnings(.summariseMTC(gemtc::relative.effect(
       mtcRes, t1 = tid[t], preserve.extra = FALSE
     )))
 
@@ -110,7 +110,7 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
 
 extractModelFit = function(mtcRes) {
   #mtcRes - an mtc.result object as returned by mtc.run from the gemtc package
-  modelSummary = summariseMTC(mtcRes)
+  modelSummary = .summariseMTC(mtcRes)
   dic = data.frame(
     'Mean' = modelSummary$DIC,
     'SD' = NA,
