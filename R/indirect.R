@@ -1,13 +1,15 @@
-buildGraph = function(edgelist, all = FALSE, plotNetwork = FALSE) {
-  #create a graph object edgelist - a two column matrix describing the
-  #connections _from_ the first column _to_ the second column. The values are
-  #the treatment numbers all - logical. Describes whether all studies of the
-  #same treatments should be shown as separate connections in the graph or
-  #collapsed into a single edge. If there are 3 studies comparing the same
-  #treatments all=TRUE will show three lines, all=FALSE will only show one
-  #(Default) plotNetwork - logical indicating whether to draw a plot of the
-  #network or not
-
+#'Create an igraph object
+#' @param edgelist A two column matrix describing the connections _from_ the first
+#'   column _to_ the second column. The values are the treatment numbers
+#' @param Logical. Describes whether all studies of the same treatments should be
+#'   shown as separate connections in the graph or collapsed into a single edge.
+#'   If there are 3 studies comparing the same treatments all=TRUE will show three
+#'   lines, all=FALSE will only show one(Default)
+#' @param plotNetwork Logical indicating whether to draw a plot of the
+#'   network or not
+#'
+#' @return An igraph object
+.buildGraph = function(edgelist, all = FALSE, plotNetwork = FALSE) {
   #collapse the edges unless explicitly requested not to
   if (all != TRUE) {
     el = as.matrix(dplyr::distinct(edgelist))
@@ -23,12 +25,19 @@ buildGraph = function(edgelist, all = FALSE, plotNetwork = FALSE) {
   return(g)
 }
 
-getPathsByLength = function(g, len = 2) {
-  #Function to return all combinations of 3 connected treatments identifies all
-  #paths of length 2 (3 nodes, 2 edges) If there are multiple ways to connect
-  #two treatments then all possible combinations are returned g - a graph object
-  #as produced by igraph len - the length of path to be identified (Default=2).
-  #Connecting 3 nodes has a path length of two
+#' Return all combinations of nodes with a set path length
+#'
+#' @param g An igraph object
+#' @param len Integer. The desired path length. Default = 2.
+#'
+#' @details A function to search an igraph object and return
+#'  all combinations of nodes connected by a certain path
+#'  length. The default is to return all combinations of three
+#'  nodes that can be connected in exactly two steps.
+#'
+#' @return A data frame
+#'
+.getPathsByLength = function(g, len = 2) {
   sp = igraph::shortest.paths(g)
   sp[upper.tri(sp,TRUE)] = NA
   wp = which(sp == len, arr.ind = TRUE)
@@ -38,27 +47,73 @@ getPathsByLength = function(g, len = 2) {
     ), wp[,1], wp[,2])
 }
 
+#' Simple indirect (Bucher) meta-analysis
+#'
+#' @param abTE Numeric. The treatment effect for a vs b. e.g. log OR, log HR,
+#'   mean difference
+#' @param se.abTE Numeric. The standard error of the treatment effect for
+#'   a vs b, e.g. se of log OR
+#' @param cbTE Numeric. The treatment effect for c vs b. e.g. log OR, log HR,
+#'   mean difference
+#' @param se.cbTE Numeric. The standard error of the treatment effect for c vs
+#'   b, e.g. se of log OR
+#' @param effect Character string describing the effect measure, e.g. 'Rate
+#'   Ratio' or 'log Odds Ratio'
+#' @param model Character string indicating whether abTE and cbTE come from a
+#'   fixed effect model or a random effect model
+#' @param intervention Character string. Name of the intervention treatment
+#' @param comparator Character string. Name of the comparator treatment
+#' @param common Character string. Name of the common comparator that links the
+#'   indirect comparison, e.g. placebo
+#' @param backtransf Logical indicating whether the results should be
+#'   exponentiated or not. If abTE and cbTE are on the log scale (e.g. log
+#'   hazard ratio) set this to TRUE to return the exponentiated results (e.g.
+#'   hazard ratio). If TRUE this will return both the log estimates and the
+#'   exponentiated estimates
+#'
+#' @details Calculate an indirect estimate of the relative effect of two
+#'   treatments using the Bucher method
+#'
+#'   The inputs are the relative treatment effects for two pairs of treatments
+#'   linked by a common comparator. For example, if you have the relative
+#'   effects (e.g. log hazard ratio) for treatment A vs placebo and treatment C
+#'   vs placebo then this function will return the relative effect of treatment
+#'   A compared to treatment C.
+#'
+#'   This function is mainly intended to be called from \code{\link{doBucher}} but can
+#'   be used directly if required.
+#'
+#'   \code{effect}, \code{model}, \code{intervention}, \code{comparator} and
+#'   \code{common} are used for labels only. The results depend only on
+#'   \code{abTE}, \code{cbTE} and the respective standard errors.
+#'
+#'   @return A data frame with the following columns:
+#' \itemize{
+#'  \item \code{Intervention} The name of the intervention
+#'  \item \code{Comparator} The name of the comparator
+#'  \item \code{Common} The name of the common treatment linking intervention
+#'  and comparator
+#'  \item \code{Effect} The type of effect measure. Takes the
+#'    value of the \code{effect} argument
+#'  \item \code{Model} The type of model. Fixed effect or Random Effects.
+#'  \item \code{log.TE.ind} The treatment effect on log scale, e.g. log OR
+#'  \item \code{log.lower.ind}, \code{log.upper.ind} The upper and lower 95\% confidence
+#'    intervals for the log treatment effect
+#'  \item \code{se.log.TE.ind} The standard error for the log treatment effect
+
+#'  \item \code{TE.ind}, \code{lower.ind}, \code{upper.ind} The treatment effect with lower
+#'    and upper confidence intervals backtransformed to a linear scale
+#'  \item \code{n.studies} The number of studies included in the analysis
+#'  \item \code{Studies} The names of the studies included in the analysis
+#' }
+#'
+#'   @seealso \code{\link{doBucher}}
+
 bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model,
                   intervention, comparator, common, backtransf = FALSE,
                   ab.studies, cb.studies) {
-  #abTE - treatment effect for a vs b. e.g. log OR, log HR, mean difference
-  #se.abTE - standard error of the treatment effect for a vs b, e.g. se of log OR
-  #cbTE - treatment effect for c vs b. e.g. log OR, log HR, mean difference
-  #se.cbTE - standard error of the treatment effect for c vs b, e.g. se of log OR
-  #effect - Character string describing the effect measure, e.g. 'Rate Ratio' or 'log Odds Ratio'
-  #model - Character string indicating whether abTE and cbTE come from a fixed effect model or a
-  #   random effect model
-  #intervention - Character string. Name of the intervention treatment
-  #comparator - Character string. Name of the comparator treatment
-  #common - Character string. Name of the common comparator, e.g. placebo
-  #backtransf - logical indicating whether the results should be exponentiated or not. If abTE and cbTE are
-  #on the log scale set this to TRUE to return the exponentiated results. If TRUE this will return both the
-  #log estimates and the exponentiated estimates
-  #
-  #effect, model, intervention, comparator and common are used for labels only.
-  #The results depend only on abTE, cbTE and the respective standard errors.
 
-  acTE = abTE - cbTE #treatment effect
+  acTE = abTE - cbTE #indirect treatment effect
   se.acTE = sqrt(se.abTE ^ 2 + se.cbTE ^ 2) #standard error - sqrt(sum of the two variances)
   log.lower = acTE - (1.96 * se.acTE) #calculate confidence intervals
   log.upper = acTE + (1.96 * se.acTE)
@@ -90,23 +145,67 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model,
   )
 }
 
-doBucher = function(comparisons, direct, effectType = 'all', backtransf =
-                      FALSE) {
-  #comparisons - a data frame with four columns: StudyName, study, comparator, treatment. Describes the treatment comparisons
-  # present in the dataset. study, comparator and treatment must be numbers. For example, study = 4, comparator=1, treatment=2
-  # represents the compartison of treatment 2 vs treatment 1 in study 4
-  #direct - a data frame containing the results of direct head-to-head meta-analysis for the treatment comparisons of interest
-  # if only one study is available for a given comparison then the result of that study should be used. This data frame can be
-  # created by using doDirectMeta and extractDirectRes in order
-  #effectType - character string indicating what type of results are required. Default is all which will return both fixed effect
-  # and random effect results. Alternatives are 'Fixed' or 'Random' (Case sensitive) if only one set of results is required
+#' Perform all possible indirect comparisons for a given data set
+#'
+#' @param comparisons A data frame with four columns: StudyName, study,
+#'   comparator, treatment. Describes the treatment comparisons present in the
+#'   dataset. study, comparator and treatment must be numbers. For example,
+#'   study = 4, comparator=1, treatment=2 represents the comparison of treatment
+#'   2 vs treatment 1 in study 4
+#'@param direct A data frame containing the results of direct head-to-head
+#'  meta-analysis for the treatment comparisons of interest if only one study is
+#'  available for a given comparison then the result of that study should be
+#'  used. This data frame can be created by using \code{doDirectMeta} and
+#'  \code{extractDirectRes} in that order
+#' @param effectType Character string indicating what type of results are
+#'   required. Default is 'all' which will return both fixed effect and random
+#'   effect results. Alternatives are 'Fixed' or 'Random' (Case sensitive) if
+#'   only one set of results is required
+#'
+#' @details This function performs indirect meta-analysis for all possible
+#'   comparisons in a given data set. This function takes a set of treatment
+#'   comparisons from one or more studies and identifies all possible indirect
+#'   comparisons where two treatments can be connected via a common comparator.
+#'   If there is more than one way to connect two treatments then all possible
+#'   variations are calculated. This function calls \code{\link{bucher}} internally
+#'   to calculate the treatment effects
+#'
+#'   The inputs for this function will usually be the results from direct
+#'   meta-analysis for a given set of treatments. The recommended workflow is
+#'   to use \code{\link{doDirectMeta}} to perform head to head meta-analysis for
+#'   a given set of treatments, extract the results as a data frame using
+#'   \code{\link{extractDirectRes}} then use that data frame to provide the inputs
+#'   for this function.
+#'
+#'   @return A data frame with the following columns:
+#' \itemize{
+#'  \item \code{Intervention} The name of the intervention
+#'  \item \code{Comparator} The name of the comparator
+#'  \item \code{Common} The name of the common treatment linking intervention
+#'  and comparator
+#'  \item \code{Effect} The type of effect measure. Takes the
+#'    value of the \code{effect} argument
+#'  \item \code{Model} The type of model. Fixed effect or Random Effects.
+#'  \item \code{log.TE.ind} The treatment effect on log scale, e.g. log OR
+#'  \item \code{log.lower.ind}, \code{log.upper.ind} The upper and lower 95\% confidence
+#'    intervals for the log treatment effect
+#'  \item \code{se.log.TE.ind} The standard error for the log treatment effect
+#'  \item \code{TE.ind}, \code{lower.ind}, \code{upper.ind} The treatment effect with lower
+#'    and upper confidence intervals backtransformed to a linear scale
+#'  \item \code{n.studies} The number of studies included in the analysis
+#'  \item \code{Studies} The names of the studies included in the analysis
+#' }
+#' @seealso \code{\link{bucher}}, \code{\link{doDirectMeta}},
+#'   \code{\link{extractDirectRes}}
+doBucher = function(comparisons, direct, effectType = 'all',
+                    backtransf = FALSE) {
 
   #take information describing available comparisons from the direct MA dataset
   connections = dplyr::select(comparisons, from = treatment, to = comparator)
-  g = buildGraph(connections)
+  g = .buildGraph(connections)
 
-  #get the set of possible BUcher comparisons
-  bucherSet = getPathsByLength(g, 2)
+  #get the set of possible Bucher comparisons
+  bucherSet = .getPathsByLength(g, 2)
 
   for (i in 1:ncol(bucherSet)) {
     #for each comparison get the list of possible alternatives
