@@ -253,19 +253,19 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
   df = as.data.frame(df)
   if (is.na(yOrder)) {
     df[,yvar] = factor(df[,yvar], levels = sort(unique(df[,yvar])))
-    p = ggplot2::ggplot(df) + ggplot2::geom_point(aes_string(x = xvar, y = yvar), size = 4)
+    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = yvar), size = 4)
     p = p + ggplot2::geom_errorbarh(
-      aes_string(x = xvar, y = yvar, xmax = hiLimit, xmin = lowLimit),
+      ggplot2::aes_string(x = xvar, y = yvar, xmax = hiLimit, xmin = lowLimit),
       height = 0.15
       )
     p = p + ggplot2::scale_y_discrete(limits = rev(levels(df[,yvar])))
   } else {
-    p = ggplot2::ggplot(df) + ggplot2::geom_point(aes_string(x = xvar, y = yOrder), size = 4)
+    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = yOrder), size = 4)
     p = p + ggplot2::geom_errorbarh(
-      aes_string(x = xvar, y = yOrder, xmax = hiLimit, xmin = lowLimit),
+      ggplot2::aes_string(x = xvar, y = yOrder, xmax = hiLimit, xmin = lowLimit),
       height = 0.15
       )
-    p = p + ggplot::scale_y_reverse(breaks = df[,yOrder], labels = df[,yvar])
+    p = p + ggplot2::scale_y_reverse(breaks = df[,yOrder], labels = df[,yvar])
   }
 
   #set sensible scale for x-axis
@@ -279,14 +279,14 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
     xrange = c(NA,NA)
   }
 
-  p = p + ggplot2::scale_x_continuous(breaks = pretty_breaks(n = 10), limits = xrange)
-  p = p + ggplot::labs(x = xlabel)
+  p = p + ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10), limits = xrange)
+  p = p + ggplot2::labs(x = xlabel)
   p = p + ggplot2::geom_vline(xintercept = noEffectLine)
   p = p + ggplot2::theme_bw()
   p = p + ggplot2::theme(
-    axis.title.y = element_blank(), panel.grid = element_blank(),
-    axis.text = element_text(size = 12),
-    axis.title = element_text(size = 12, vjust = 0),
-    panel.border = element_rect(colour = 'black')
+    axis.title.y = ggplot2::element_blank(), panel.grid = ggplot2::element_blank(),
+    axis.text = ggplot2::element_text(size = 12),
+    axis.title = ggplot2::element_text(size = 12, vjust = 0),
+    panel.border = ggplot2::element_rect(colour = 'black')
   )
 }
