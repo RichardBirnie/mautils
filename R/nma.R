@@ -1,7 +1,19 @@
-#load packages required by functions in this file
-#library(tools, quietly = TRUE)
-#require(gridExtra)
-
+#' Extract treatment comparison information from mtc summary output
+#'
+#' @param A data frame as returned by \code{calcAllPairs}
+#'
+#' @details In the summary output from a network meta-analysis treatment
+#'   comparisons are commonly labelled as 'd.1.2' for the relative effect of
+#'   treatment 2 compared to treatment 1. This function removes the 'd' and
+#'   splits '1' and '2' into separate columns which is more useful for
+#'   downstream reporting. This function is intended to work on the output from
+#'   \code{calcAllPairs}. This functionality will usually be accessed via
+#'   extractMTCResults and should only be used directly if you understand what
+#'   you are doing.
+#'
+#' @return A data frame with additional columns
+#'
+#' @seealso \code{\link{calcAllPairs}}, \code{\link{extractMTCResults}}
 extractComparison = function(df) {
   #extract the information of which comparison is on each row from the
   #first column of the winBUGS output and store it in individual columns
@@ -13,11 +25,28 @@ extractComparison = function(df) {
   df = dplyr::tbl_df(dplyr::bind_cols(treatments, df[,2:ncol(df)]))
 }
 
+#' Match treatment names to ID numbers
+#'
+#' @param results A data frame as returned by \code{extractComparison}
+#' @param coding A data frame with two columns 'id' and 'description'. 'id' must
+#'   be the treatment id numbers corresponding to the way the treatments were
+#'   coded in the network. 'description' should be the name of the treatment.
+#'
+#' @details This function matches the coded treatment id numbers in the network
+#'   to the corresponding human readable names. The mapping from id number to
+#'   name should be provided as a two column data frame via the \code{coding}
+#'   argument. This function is intended to work on the data frame generated as
+#'   the output from \code{extractComparison}. This function will mainly be
+#'   called via \code{extractMTCResults} and should only be used directly if you
+#'   understand what you are doing. The general work flow is \code{mtc.run} >
+#'   \code{calcAllPairs} > \code{extractComparison} > \code{nameTreatments} >
+#'   \code{makeTab}. \code{extractMTCResults} will handle the last four steps
+#'   for you.
+#'
+#' @return The same data frame with the treatment names appended
+#'
+#' @seealso \code{\link{extractComparison}}, \code{\link{calcAllPairs}}, \code{\link{extractMTCResults}}
 nameTreatments = function(results, coding, ...) {
-  #map the treatment names to the numerical codes
-  #results = data frame of winbugs output that has already been cleaned up with
-  #extract comparisons
-  #coding = data frame that maps treatment names to their numerical codes
 
   #drop order column from coding. Makes no sense here
   coding = coding[,1:2]
@@ -32,6 +61,37 @@ nameTreatments = function(results, coding, ...) {
   return(results)
 }
 
+#' Generate a square grid reporting all pairwise comparisons of treatments in
+#' the network
+#'
+#' @param results A data frame as returned by \code{nameTreatments}
+#' @param coding  A data frame with two columns 'id' and 'description'. 'id'
+#'   must be the treatment id numbers corresponding to the way the treatments
+#'   were coded in the network. 'description' should be the name of the
+#'   treatment. An optional third column named 'Order' may also be provided. If
+#'   present this controls the order in which treatments are presented in the
+#'   output. The values should be a sequence of numbers indicating the order in
+#'   which the treatments should be sorted. If the 'Order' column is present
+#'   then \code{reportOrder}  should be set to 'custom'
+#' @param rounding The number of decimal places to be included in the output.
+#'   The default is two.
+#' @param reportOrder A character string indicating whether the treatments
+#'   should be reported in the order the order they were provided (default) or
+#'   if a custom order is required. Acceptable values are 'default' or 'custom'.
+#'   If this is set to 'custom' then \code{coding} must contain a column named
+#'   'Order'. See above.
+#' @param ... Arguments passed from other functions, primarily
+#'   \code{extractMTCResults}
+#'
+#' @details This function takes a data frame as returned by
+#'   \code{nameTreatments} and returns a square grid containing all pairwise
+#'   treatment comparisons in the network. The results are presented for column
+#'   versus row. This is a common approach to reporting MTC results. This
+#'   function should mainly be used via \code{extractMTCResults}
+#'
+#' @return A data frame
+#'
+#' @seealso \code{\link{extractMTCResults}}, \code{\link{nameTreatments}}
 makeTab = function(results, coding, rounding = 2, reportOrder = 'default', ...) {
   #create summary string
   results[,'effect'] = paste0(
@@ -69,21 +129,39 @@ makeTab = function(results, coding, rounding = 2, reportOrder = 'default', ...) 
   reportTab = as.data.frame(t(reportTab))
 }
 
+#internal function used to access the S3 summary() method for mtc.result objects
 .summariseMTC = getS3method('summary', 'mtc.result')
 
+#' Calculate all pairwise treatment effects in a network meta-analysis
+#'
+#' @param mtcRes An object of class \code{mtc.results} as returned by mtc.run
+#' @param expon Logical indicating whether the results should be exponentiated
+#'   or not. If your analysis is based on log hazard ratio or log odds ratio etc
+#'   then set this to TRUE to get the results as the corresponding hazard ratio
+#'   or odds ratio.
+#' @param ... Additional arguments passed down from extractMTCResults
+#'
+#' @details This function takes a \code{mtc.results} object and extracts summary
+#'   statistics for all pairwise treatment comparisons in the network using
+#'   \code{relative.effect} from gemtc. This function should mainly be used via
+#'   \code{extractMTCresults} but can be called directly on any
+#'   \code{mtc.results} object. Only results for the treatment comparisons are
+#'   returned, additional nodes such as hetereogeneity parameters are not
+#'   returned. Model comparisons statistics and heterogeneity parameters can be
+#'   obtained using \code{extractModelFit}
+#'
+#' @return A data frame reporting summary statistics (mean, median etc) for the
+#'   posterior distribution of each treatment comparison. Each row in the data
+#'   frame represents one treatment comparison.
+#'
+#' @seealso \code{\link[gemtc]{mtc.run}}, \code{\link[gemtc]{relative.effect}}
+#'   \code{\link{extractMTCResults}}, \code{\link{extractModelFit}}
 calcAllPairs = function(mtcRes, expon = FALSE, ...) {
-  #This function takes two arguments
-  #mtcRes is an object of class mtc.result, i.e. the output from mtc.run in the
-  #gemtc package
-  #expon controls whether the output is exponentiated or not. If the input is
-  #log OR (or HR or RR)
-  # set this to TRUE to get output on the linear scale
-
   tid = as.integer(mtcRes$model$network$treatments$id)
   for (t in 1:length(tid)) {
-    re = suppressWarnings(.summariseMTC(gemtc::relative.effect(
-      mtcRes, t1 = tid[t], preserve.extra = FALSE
-    )))
+    re = suppressWarnings(.summariseMTC(
+      gemtc::relative.effect(mtcRes, t1 = tid[t], preserve.extra = FALSE)
+    ))
 
     stats = re$summaries$statistics
     stats = data.frame(node = rownames(stats), stats, row.names = NULL)
@@ -108,8 +186,22 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
   output = output[,c(1,7,6,8,2:5,9)]
 }
 
+#' Extract model comparison statistics from a \code{mtc.result} object
+#'
+#' @param mtcRes an object of class \code{mtc.result} as returned by
+#'   \code{mtc.run} from gemtc
+#'
+#' @details This function returns model comparison statistics (DIC, pD, Dbar)
+#'   from a \code{mtc.result} object. If the results object is derived from a
+#'   random effects model then the between trials standard deviation will also
+#'   be provided as sd.d. This function should mainly be used via
+#'   \code{extractMTCResults} but can be used directly on a \code{mtc.result}
+#'   object.
+#'
+#' @return A data frame containing the model comparison statistics.
+#'
+#' @seealso \code{\link{extractMTCResults}}, \code{\link[gemtc]{mtc.run}}
 extractModelFit = function(mtcRes) {
-  #mtcRes - an mtc.result object as returned by mtc.run from the gemtc package
   modelSummary = .summariseMTC(mtcRes)
   dic = data.frame(
     'Mean' = modelSummary$DIC,
@@ -129,7 +221,69 @@ extractModelFit = function(mtcRes) {
   return(dic)
 }
 
-extractResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
+#' Extract the results of a network meta-analysis from a \code{mtc.results} object
+#'
+#' @param res A \code{mtc.results} object as returned by \code{mtc.run}
+#' @param resultsFile A character string indicating the path to the excel file
+#'   where the results should be saved. This is passed on directly to
+#'   \code{\link[rbutils]{saveXLSX}}
+#' @param includesPlacebo Logical indicating whether the network includes
+#'   placebo. This requires slightly different handling internally as placebo is
+#'   always the comparator and never the intervention
+#' @param ... Additional arguments passed to underlying extractor functions,
+#'   particularly calcAllPairs, nameTreatments and makeTab
+#'
+#' @details This function takes an object of class \code{mtc.result} and
+#'   extracts the results for all pairwise treatment comparisons in the network.
+#'   The results are returned as a data frame. This function is a wrapper that
+#'   calls a series of other functions in the right order to do the actual work.
+#'   \itemize{
+#'    \item calcAllPairs calculates all pairwise treament comparisons
+#'    in the network using \code{relative.effect} from the gemtc package
+#'    \item extractComparison separates out the which pair of treatments
+#'    are being compared
+#'    \item nameTreatments matches the numbered treatment ID used by mtc.run to
+#'    human readable treatment names
+#'    \item makeTab produces a square grid of all pairwise treatment comparisons
+#'    in the network. The results are presented for column versus row. This is a
+#'    common approach to reporting MTC results.
+#'    \item extractModelFit Extracts and returns model comparison statistics such
+#'    as DIC, pD and Dbar
+#'   }
+#'
+#'   The underlying functions can be used directly provided this order is
+#'   maintained however this should not usually be necessary. If you take this
+#'   approach you will also need to save all the respective outputs
+#'   appropriately.
+#'
+#'   The \code{...} can be used to pass arguments to the underlying functions.
+#'   The following arguments in particular will be required in almost all cases:
+#'   \itemize{
+#'   \item \code{expon} Logical indicating whether the results should be exponentiated
+#'   or not. If your analysis is based on log hazard ratio or log odds ratio etc
+#'   then set this to TRUE to get the results as the corresponding hazard ratio
+#'   or odds ratio. Passed to \code{calcAllPairs}
+#'   \item \code{coding} A data frame with two columns 'id' and 'description'. 'id'
+#'   must be the treatment id numbers corresponding to the way the treatments
+#'   were coded in the network. 'description' should be the name of the
+#'   treatment. An optional third column named 'Order' may also be provided. If
+#'   present this controls the order in which treatments are presented in the
+#'   output. The values should be a sequence of numbers indicating the order in
+#'   which the treatments should be sorted. If the 'Order' column is present
+#'   then \code{reportOrder}  should be set to 'custom'. Passed to \code{makeTab}
+#'   \item \code{reportOrder} A character string indicating whether the treatments
+#'   should be reported in the order the order they were provided (default) or
+#'   if a custom order is required. Acceptable values are 'default' or 'custom'.
+#'   If this is set to 'custom' then \code{coding} must contain a column named
+#'   'Order'. See above. Passed to \code{makeTab}
+#'   }
+#'
+#' @seealso \code{\link[gemtc]{mtc.run}}, \code{\link[rbutils]{saveXLSX}},
+#'   \code{\link{calcAllPairs}}, \code{\link{extractComparison}},
+#'   \code{\link{nameTreatments}}, \code{\link{makeTab}},
+#'   \code{\link{extractModelFit}}
+#'
+extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
   #calculate all pairwise effects
   pairwiseResults = calcAllPairs(res, ...)
   rbutils::saveXLSX(
@@ -137,7 +291,7 @@ extractResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
     showNA = FALSE, row.names = FALSE, append = TRUE
   )
 
-  #extract the comparison info from the first column
+  #extract the comparison info
   #map treatment names to numbers
   pairwiseResults = extractComparison(pairwiseResults)
   pairwiseResults = nameTreatments(pairwiseResults, ...)
@@ -168,20 +322,44 @@ extractResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
   return(pairwiseResults)
 }
 
+#' Extract all treatment comparisons involving a specific treatment if interest
+#'
+#' @param df A data frame as produced by \code{extractMTCResults}
+#' @param toi An integer specifying the id number of the treatment of interest
+#'   in the network
+#' @param treatments A data frame with two columns 'id' and 'description'. 'id'
+#'   must be the treatment id numbers corresponding to the way the treatments
+#'   were coded in the network. 'description' should be the name of the
+#'   treatment. An optional third column named 'Order' may also be provided. If
+#'   present this controls the order in which treatments are presented in the
+#'   output. The values should be a sequence of numbers indicating the order in
+#'   which the treatments should be sorted. If the 'Order' column is present
+#'   then set \code{orderResults=TRUE}
+#' @param intervention Logical indicating whether the treatment of interest is
+#'   an intervention or a comparator (e.g. placebo). This controls which column
+#'   of \code{df} is searched to identify relevant treatment comparisons
+#' @param orderResults Logical indicating whether the results are returned in a
+#'   specific order or in the order they were given. The default is
+#'   \code{FALSE}. If this is set to \code{TRUE} then \code{treatments} must
+#'   contain a column named 'Order', see above.
+#'
+#' @details This is a simple filtering function to return all treatment
+#'   comparisons involving a specific treatment of interest. This function is
+#'   designed to be used with the output of \code{extractMTCResults}. There are
+#'   two intended use cases:
+#'   \enumerate{
+#'   \item To return results for a given intervention of interest compared to
+#'   all other treatments in the network
+#'   \item To return results for all interventions compared to a given control
+#'   treatment, e.g. placebo.
+#'   }
+#'
+#' @return A data frame containing all treatment comparisons involving the
+#'   specified treatment of interest.
+#'
+#' @seealso \code{\link{extractMTCResults}}
 extractTOI = function(df, treatments, toi, intervention = TRUE,
                       orderResults = FALSE) {
-  #df   - a data frame of results as produced after running extractComparison
-  #and nameTreatments
-  #toi  - the code number of the treatment of interest (toi) in the network
-  #treatments - a table of treatments with columns 'id', 'description', 'Order'
-  #The 'Order' column is optional. If present it should be a column of integers
-  #describing the order the results should be returned in. Note that the name is
-  #case sensitive. If you wish to use thise feature set orderResults=TRUE
-  #intervention - specifies whether the treatment of interest is an intervention
-  #or a comparator (i.e. placebo)
-  #orderResults - controls whether the results are returned in a specific order
-  #or in the order they were given.
-  #If present this should be a vector if integers
 
   #extract the treatment of interest
   if (intervention == TRUE) {
@@ -205,6 +383,19 @@ extractTOI = function(df, treatments, toi, intervention = TRUE,
   return(df)
 }
 
+#' Extract JAGS model code from a \code{mtc.results} object
+#'
+#' @param mtcRes An object of class \code{mtc.result} as returned by mtc.run
+#'   from the gemtc package
+#' @param modelFile A character string specify the file path where the code will
+#'   be saved.
+#'
+#' @details The \code{mtc.run} function automatically generates JAGS code to
+#'  specify a network meta-analysis model. This function extracts the JAGS code
+#'  from the \code{mtc.results} object and saves it to a file to have a record of what
+#'  was done.
+#'
+#' @seealso \code{\link[gemtc]{mtc.run}}
 saveModelCode = function(mtcRes, modelFile) {
   #create some basic descriptive text from the model object
   des = paste0('#Description: ', mtcRes$model$network$description, '\n')
@@ -224,10 +415,19 @@ saveModelCode = function(mtcRes, modelFile) {
   cat(mtcRes$model$code, file = modelFile, append = TRUE)
 }
 
-saveDiagnostics = function(mtc, directory) {
-  #Save some convergence diagnostics as pdf files. Plots are based on ggmcmc package
-  #mtc - an object of class mtc.result as returned but mtc.run in the gemtc package
-  #directory - a file path indicating the folder to save the results
+#' Save convergence diagnostics
+#' @param mtc An object of class \code{mtc.result} as returned by \code{mtc.run}
+#'   in the \code{gemtc} package
+#' @param directory A character string indicating the directory to save the
+#'   results. By default a directory named ConvergenceDiagnostics will be
+#'   created as a subfolder of the current directory
+#' @details Create pdf files of some basic diagnostic plots to check the
+#'   convergence of MCMC models. Plots are produced by the ggmcmc package for
+#'   the trace of the MCMC chain(s), the posterior density of the model
+#'   parameters and the autocorrelation within chains
+#'
+#' @seealso \code{\link[ggmcmc]{ggmcmc}}
+saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
 
   #if there is no directory to save the plot files then create one
   if (!dir.exists(directory)) {
@@ -247,6 +447,41 @@ saveDiagnostics = function(mtc, directory) {
   ggmcmc::ggmcmc(diagData, file = f, plot = 'autocorrelation', param_page = 3)
 }
 
+#' Plot the results of a network meta-analysis
+#'
+#' @param df A data frame containing summary statistics for the posterior
+#'   distribution of the parameters in a network meta-analysis.
+#' @param yvar A character string specifying the name of the column in \code{df}
+#'   that contains the variable to be used on the y-axis. Usually this will be
+#'   the names of the treatments in the network.
+#' @param xvar A character string specifying the name of the column in \code{df}
+#'   that contains the variable to be used on the x-axis. Usually this will be
+#'   the median of the posterior distribution of the treatment effect
+#' @param lowLimit, hiLimit Character strings specifying the names of the
+#'   columns in \code{df} that specify the lower and upper limits of the 95%
+#'   credible intervals. If you have followed the work flow in this package
+#'   these will be called 'CrI_lower' and 'CrI_upper' respectively.
+#' @param xlabel A character string to be used as a label on the x-axis. This is
+#'   usually the type of effect measure, e.g. 'Odds ratio', 'Rate Ratio' etc.
+#' @param noEffectLine An integer indicating where to draw the line of no
+#'   effect. For ratio measures this is usually 1. For mean differences this is
+#'   usually 0.
+#' @param yOrder A character string giving the name of the column in \code{df}
+#'   that specifies the order of treatments on the y-axis. The default is NA in
+#'   which case the treatments will be displayed on the y-axis alphabetically
+#'   from top to bottom. If a specific order is required this is best specified
+#'   in a column named 'Order' containing a series of numbers indicating the
+#'   plotting order from top to bottom.
+#'
+#' @details This function should most commonly be used with the output from
+#'   extractTOI to plot the results for a particular treatment of interest. This
+#'   function uses ggplot to do the actual plotting and returns a ggplot object
+#'   which may be further modified if required or just saved to a file.
+#'
+#' @return A ggplot object
+#'
+#' @seealso \code{\link{extractTOI}}, \code{\link[ggplot2]{geom_point}},
+#'   \code{\link[ggplot2]{geom_errorbarh}}
 plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
                          hiLimit = 'CrI_upper', xlabel = 'Effect Estimate',
                          noEffectLine = 1, yOrder = NA) {
