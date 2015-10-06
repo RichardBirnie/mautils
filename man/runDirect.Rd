@@ -10,16 +10,18 @@ runDirect(df, file, data_type, effect_code, outcome, effect_measure,
   show_random = TRUE)
 }
 \arguments{
-\item{df}{A \code{data.frame} This should be in one of two formats. Arm
-level data must contain the columns 'study' and 'treatment' where study
-is a study id number (1, 2, 3 ...) and treatment is a treatment id
-number. Relative effect data (e.g. log odds ratio, log rate ratio) must
-contain the same study and treatment columns plus the columns 'diff' and
-'std.err'. Set diff=NA for the baseline arm. The column std.err should be
-the standard error of the relative effect estimate. For trials with more
-than two arms set std.err as the standard error of the baseline arm. This
-determines the covariance which is used to adjust for the correlation in
-multiarm studies.}
+\item{df}{A \code{data.frame} This should be in one of two formats. Arm level
+data must contain the columns 'study' and 'treatment' where study is a
+study id number (1, 2, 3 ...) and treatment is a treatment id number. If
+the data are binary then the data frame should also contain columns
+'responders' and 'sampleSize' reporting the total number of events and
+total number analysed respectively for each arm. Relative effect data (e.g.
+log odds ratio, log rate ratio) must contain the same study and treatment
+columns plus the columns 'diff' and 'std.err'. Set diff=NA for the baseline
+arm. The column std.err should be the standard error of the relative effect
+estimate. For trials with more than two arms set std.err as the standard
+error of the baseline arm. This determines the covariance which is used to
+adjust for the correlation in multiarm studies.}
 
 \item{file}{A character string specifying the directory where the results
 will be saved. This function will create two new subdirectories

@@ -1,16 +1,18 @@
 #' Run direct head to head meta-analysis for all possible pairwise comparisons
 #' in a dataset
 #'
-#' @param df A \code{data.frame} This should be in one of two formats. Arm
-#'   level data must contain the columns 'study' and 'treatment' where study
-#'   is a study id number (1, 2, 3 ...) and treatment is a treatment id
-#'   number. Relative effect data (e.g. log odds ratio, log rate ratio) must
-#'   contain the same study and treatment columns plus the columns 'diff' and
-#'   'std.err'. Set diff=NA for the baseline arm. The column std.err should be
-#'   the standard error of the relative effect estimate. For trials with more
-#'   than two arms set std.err as the standard error of the baseline arm. This
-#'   determines the covariance which is used to adjust for the correlation in
-#'   multiarm studies.
+#' @param df A \code{data.frame} This should be in one of two formats. Arm level
+#'   data must contain the columns 'study' and 'treatment' where study is a
+#'   study id number (1, 2, 3 ...) and treatment is a treatment id number. If
+#'   the data are binary then the data frame should also contain columns
+#'   'responders' and 'sampleSize' reporting the total number of events and
+#'   total number analysed respectively for each arm. Relative effect data (e.g.
+#'   log odds ratio, log rate ratio) must contain the same study and treatment
+#'   columns plus the columns 'diff' and 'std.err'. Set diff=NA for the baseline
+#'   arm. The column std.err should be the standard error of the relative effect
+#'   estimate. For trials with more than two arms set std.err as the standard
+#'   error of the baseline arm. This determines the covariance which is used to
+#'   adjust for the correlation in multiarm studies.
 #' @param file A character string specifying the directory where the results
 #'   will be saved. This function will create two new subdirectories
 #'   'Results/Direct' and 'Results/Direct/Figures' to store the output. These
@@ -131,15 +133,18 @@ runDirect = function(df, file, data_type, effect_code, outcome, effect_measure,
 #' Rearrange data from gemtc input format to a format suitable for direct
 #' meta-analysis
 #'
-#' @param input.df A \code{data.frame} This should be in one of two formats. Arm
-#'   level data must contain the columns 'study' and 'treatment' where study is
-#'   a study id number (1, 2, 3 ...) and treatment is a treatment id number.
-#'   Relative effect data (e.g. log odds ratio, log rate ratio) must contain the
-#'   same study and treatment columns plus the columns 'diff' and 'std.err'. Set
-#'   diff=NA for the baseline arm. The column std.err should be the standard
-#'   error of the relative effect estimate. For trials with more than two arms
-#'   set std.err as the standard error of the baseline arm. This determines the
-#'   covariance which is used to adjust for the correlation in multiarm studies.
+#' @param input.df \code{data.frame} This should be in one of two formats. Arm level
+#'   data must contain the columns 'study' and 'treatment' where study is a
+#'   study id number (1, 2, 3 ...) and treatment is a treatment id number. If
+#'   the data are binary then the data frame should also contain columns
+#'   'responders' and 'sampleSize' reporting the total number of events and
+#'   total number analysed respectively for each arm. Relative effect data (e.g.
+#'   log odds ratio, log rate ratio) must contain the same study and treatment
+#'   columns plus the columns 'diff' and 'std.err'. Set diff=NA for the baseline
+#'   arm. The column std.err should be the standard error of the relative effect
+#'   estimate. For trials with more than two arms set std.err as the standard
+#'   error of the baseline arm. This determines the covariance which is used to
+#'   adjust for the correlation in multiarm studies.
 #' @param dataType A character string specifying which type of data has been
 #'   provided. Currently only 'treatment difference' or 'binary are supported
 #'

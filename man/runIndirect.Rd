@@ -9,17 +9,19 @@ runIndirect(df, data_type, direct_results, effect_type = "all",
   back_calc = FALSE, order_treatments = NA)
 }
 \arguments{
-\item{df}{A \code{data.frame} This should be in one of two formats. Arm
-level data must contain the columns 'study' and 'treatment' where study
-is a study id number (1, 2, 3 ...) and treatment is a treatment id
-number. Relative effect data (e.g. log odds ratio, log rate ratio) must
-contain the same study and treatment columns plus the columns 'diff' and
-'std.err'. Set diff=NA for the baseline arm. The column std.err should be
-the standard error of the relative effect estimate. For trials with more
-than two arms set std.err as the standard error of the baseline arm. This
-determines the covariance which is used to adjust for the correlation in
-multiarm studies. This is used to identify the set of comparisons
-available in the data set}
+\item{df}{A \code{data.frame} This should be in one of two formats. Arm level
+data must contain the columns 'study' and 'treatment' where study is a
+study id number (1, 2, 3 ...) and treatment is a treatment id number. If
+the data are binary then the data frame should also contain columns
+'responders' and 'sampleSize' reporting the total number of events and
+total number analysed respectively for each arm. Relative effect data (e.g.
+log odds ratio, log rate ratio) must contain the same study and treatment
+columns plus the columns 'diff' and 'std.err'. Set diff=NA for the baseline
+arm. The column std.err should be the standard error of the relative effect
+estimate. For trials with more than two arms set std.err as the standard
+error of the baseline arm. This determines the covariance which is used to
+adjust for the correlation in multiarm studies. This is used to identify
+the set of comparisons available in the data set}
 
 \item{data_type}{A character string specifying which type of data has been
 provided. Currently only 'treatment difference' or 'binary' are supported}
