@@ -60,10 +60,13 @@
 #'    this as an excel file
 #'   }
 #'
+#' @return A data frame containing the results of the meta-analysis
+#'
 #' @seealso \code{\link{formatDataToDirectMA}}, \code{\link{doDirectMeta}},
 #'   \code{\link{drawForest}}, \code{\link{extractDirectRes}}
-runDirect = function(df, file, data_type, effect_code, outcome, effect_measure, back_calc =
-                       FALSE, forest_plot = TRUE, show_fixed = TRUE, show_random = TRUE) {
+runDirect = function(df, file, data_type, effect_code, outcome, effect_measure,
+                     back_calc = FALSE, forest_plot = TRUE,
+                     show_fixed = TRUE, show_random = TRUE) {
 
   message('Run direct meta-analysis')
   #set up folders for the results and figures. No need to edit this
@@ -106,7 +109,7 @@ runDirect = function(df, file, data_type, effect_code, outcome, effect_measure, 
 
   #extract the results
   #get results in a useful format
-  message('Extract and save results')
+  message('Extract results')
   for (i in 1:length(directRes)) {
     res = directRes[[i]]
     res = extractDirectRes(
@@ -121,14 +124,8 @@ runDirect = function(df, file, data_type, effect_code, outcome, effect_measure, 
       dirMA = bind_rows(dirMA, res)
     }
   }
-  f = paste0(outcome, '_', analysisCase, '_', Sys.Date(), '.xlsx')
-  dirMAresultsFile = file.path(directResultDir, f)
-  saveXLSX(
-    as.data.frame(dirMA), file = dirMAresultsFile, sheetName = 'Direct', showNA =
-      FALSE, row.names = FALSE, append = TRUE
-  )
-
-  message('Direct Meta-analysis complete.')
+  #return the table of results
+  return(dirMA)
 }
 
 #' Rearrange data from gemtc input format to a format suitable for direct

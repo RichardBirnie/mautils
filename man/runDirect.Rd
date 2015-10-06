@@ -56,6 +56,9 @@ produced for each pairwise comparison.}
   default both are TRUE and both results are shown. Set the appropriate
   argument to FALSE if you want to exclude that result from the plot.}
 }
+\value{
+A data frame containing the results of the meta-analysis
+}
 \description{
 Run direct head to head meta-analysis for all possible pairwise comparisons
 in a dataset
