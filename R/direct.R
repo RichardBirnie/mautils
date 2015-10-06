@@ -1,3 +1,136 @@
+#' Run direct head to head meta-analysis for all possible pairwise comparisons
+#' in a dataset
+#'
+#' @param df A \code{data.frame} This should be in one of two formats. Arm
+#'   level data must contain the columns 'study' and 'treatment' where study
+#'   is a study id number (1, 2, 3 ...) and treatment is a treatment id
+#'   number. Relative effect data (e.g. log odds ratio, log rate ratio) must
+#'   contain the same study and treatment columns plus the columns 'diff' and
+#'   'std.err'. Set diff=NA for the baseline arm. The column std.err should be
+#'   the standard error of the relative effect estimate. For trials with more
+#'   than two arms set std.err as the standard error of the baseline arm. This
+#'   determines the covariance which is used to adjust for the correlation in
+#'   multiarm studies.
+#' @param file A character string specifying the directory where the results
+#'   will be saved. This function will create two new subdirectories
+#'   'Results/Direct' and 'Results/Direct/Figures' to store the output. These
+#'   are only created if they do not already exist
+#' @param data_type A character string specifying which type of data has been
+#'   provided. Currently only 'treatment difference' or 'binary' are supported
+#' @param effect_code A character string indicating the underlying effect
+#'   estimate. This is used to set the \code{sm} argument of the underlying
+#'   analysis functions from the \code{meta} package. Acceptable values are
+#'   'RD', 'RR', 'OR', 'HR', 'ASD', 'MD', 'SMD'
+#' @param outcome A character string indicating what outcome we are currently
+#'   looking at. This is mainly used to automatically generate meaningful file
+#'   names for output so keep it short.
+#' @param effect_measure A character string indicating what type of effect
+#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc. This is used as a
+#'   label in forest plots so keep it short.
+#' @param back_calc A logical indicating whether results should be back transformed.
+#'   This is used to set the corresponding \code{backtransf} argument of the
+#'   underlying functions from the \code{meta} package. If
+#'   \code{backtransf=TRUE} then log odds ratios (or hazard ratios etc) will
+#'   be converted to odds ratios on plots and print outs. Default is FALSE
+#' @param forest_plot A logical indicating whether a forest plot should be
+#'   produced for each pairwise comparison.
+#' @param show_fixed,show_random Logical indicating whether fixed effect
+#'   and/or random effects results should be shown on the forest plot. By
+#'   default both are TRUE and both results are shown. Set the appropriate
+#'   argument to FALSE if you want to exclude that result from the plot.
+#'
+#' @details This function runs direct head to head meta-analysis for all
+#'   possible pairwise comparisons in a dataset. The objective is to provide a
+#'   minimal set of options and abstract as much of the technical detail as
+#'   reasonably possible. This function calls a series of internal functions
+#'   to do the work (linked below). These functions may accessed directly if
+#'   additional flexibility is required but the intention is that this wrapper
+#'   should cover the majority of common applications. The actual
+#'   meta-analysis depends on functions from the \code{meta} package as does
+#'   drawing forest plots. Currently only treatment differences (OR, HR, RR
+#'   etc) and binary data are supported. Additional data types will be added
+#'   in the future.
+#'
+#'   The basic order of events is:
+#'   \itemize{
+#'    \item Run all possible pairwise comparisons in the dataset.
+#'    \item Draw forest plots if requested (see \code{forest_plot} above).
+#'    These are saved as jpg files in a subfolder named figures.
+#'    \item Extract the key information from the meta-analysis output and save
+#'    this as an excel file
+#'   }
+#'
+#' @seealso \code{\link{formatDataToDirectMA}}, \code{\link{doDirectMeta}},
+#'   \code{\link{drawForest}}, \code{\link{extractDirectRes}}
+runDirect = function(df, file, data_type, effect_code, outcome, effect_measure, back_calc =
+                       FALSE, forest_plot = TRUE, show_fixed = TRUE, show_random = TRUE) {
+
+  message('Run direct meta-analysis')
+  #set up folders for the results and figures. No need to edit this
+  directResultDir = file.path(baseFile, 'Results','Direct')
+  if (!file.exists(directResultDir)) {
+    dir.create(directResultDir, recursive = TRUE)
+  }
+  directFigDir = file.path(directResultDir, 'Figures')
+  if (!file.exists(directFigDir)) {
+    dir.create(directFigDir, recursive = TRUE)
+  }
+
+  #convert data to format suitable for direct meta-analysis using the meta packages
+  reDataDirect = formatDataToDirectMA(reData, dataType = data_type)
+
+  #run the meta-analysis
+  directRes = doDirectMeta(
+    df = reDataDirect, dataType = data_type, effectCode = effect_code,
+    backtransf = back_calc
+  )
+
+  #draw the forest plots if requested
+  if(forest_plot) {
+    message('Drawing forest plots')
+    for (i in 1:length(directRes)) {
+      f = paste0(outcome, '_Comparison', i, '.jpg')
+      figFile = file.path(directFigDir, f)
+      jpeg(
+        file = figFile, width = 25, height = 15, units = 'cm', res = 300,
+        quality = 100
+      )
+      drawForest(
+        directRes[[i]], col.square = 'red', col.diamond = 'black',
+        smlab = effect_measure, showFixed = show_fixed,
+        showRandom = show_random
+      )
+      graphics.off()
+    }
+  }
+
+  #extract the results
+  #get results in a useful format
+  message('Extract and save results')
+  for (i in 1:length(directRes)) {
+    res = directRes[[i]]
+    res = extractDirectRes(
+      metaRes = res, effect = effect_measure, backtransf = back_calc,
+      intervention = res$label.e[1], comparator = res$label.c[1],
+      interventionCode = res$e.code, comparatorCode =
+        res$c.code
+    )
+    if (i == 1) {
+      dirMA = res
+    } else {
+      dirMA = bind_rows(dirMA, res)
+    }
+  }
+  f = paste0(outcome, '_', analysisCase, '_', Sys.Date(), '.xlsx')
+  dirMAresultsFile = file.path(directResultDir, f)
+  saveXLSX(
+    as.data.frame(dirMA), file = dirMAresultsFile, sheetName = 'Direct', showNA =
+      FALSE, row.names = FALSE, append = TRUE
+  )
+
+  message('Direct Meta-analysis complete.')
+}
+
 #' Rearrange data from gemtc input format to a format suitable for direct
 #' meta-analysis
 #'
@@ -272,6 +405,9 @@ extractDirectRes = function(metaRes, effect, intervention = 'Int',
     'method.tau' = res$method.tau, 'I.sq' = res$I2, 'n.studies' = res$k,
     'studies' = studies, stringsAsFactors = FALSE
   )
+
+  #re-arrange the output columns into a more report friendly order
+  df = df[,c(5, 1, 3, 14:16, 22:23, 6, 2, 4, 7:13, 17:21)]
 
 }
 
