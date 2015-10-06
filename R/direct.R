@@ -80,7 +80,7 @@ runDirect = function(df, file, data_type, effect_code, outcome, effect_measure,
   }
 
   #convert data to format suitable for direct meta-analysis using the meta packages
-  reDataDirect = formatDataToDirectMA(reData, dataType = data_type)
+  reDataDirect = formatDataToDirectMA(df, dataType = data_type)
 
   #run the meta-analysis
   directRes = doDirectMeta(
