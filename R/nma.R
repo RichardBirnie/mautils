@@ -41,6 +41,11 @@
 #' @param doFixed,doRandom Logical indicating which model is required. Fixed
 #'   effect, random effect or both. The default is to run both. Set the
 #'   appropriate argument to FALSE if you do not want to run that analysis.
+#' @param model_type A character string describing the type of model. This is
+#'   passed to the \code{type} argument of the underlying \code{mtc.model}
+#'   function from \code{gemtc}. The underlying function accepts the values
+#'   "consistency", "nodesplit", "ume", or "use". Only consistency has been
+#'   tested in the context of this function.
 #' @param max_val Used to set \code{om.scale} and create vague priors for the
 #'   between trials heterogeneity. For the log odds-ratio, values between 2
 #'   and 5 are considered reasonable. Default = 5.
@@ -94,7 +99,8 @@
 
 runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
                   analysis_set = 'Default', doFixed = TRUE, doRandom = TRUE,
-                  max_val = 5, prior = mtc.hy.prior("std.dev", "dunif", 0, max_val),
+                  model_type = 'consistency', max_val = 5,
+                  prior = mtc.hy.prior("std.dev", "dunif", 0, max_val),
                   burn_in = 10000, iterations = 20000, save_convergence = TRUE,
                   back_calc = FALSE, includes_placebo = FALSE, placebo_code,
                   report_order = 'default') {
@@ -153,7 +159,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       #set as a uniform distribution. Upper limit is set from om.scale
       model = suppressWarnings(
         gemtc::mtc.model(
-          network, type = modelType, n.chain = 3, likelihood = likelihood,
+          network, type = model_type, n.chain = 3, likelihood = likelihood,
           link = link, linearModel = 'random',
           om.scale = max_val, hy.prior = prior
         )
@@ -162,7 +168,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       #Fixed effects model
       model = suppressWarnings(
         gemtc::mtc.model(
-          network, type = modelType, n.chain = 3, likelihood = likelihood,
+          network, type = model_type, n.chain = 3, likelihood = likelihood,
           link = link, linearModel = 'fixed',
           om.scale = max_val
         )

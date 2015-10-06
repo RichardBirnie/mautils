@@ -6,10 +6,10 @@
 \usage{
 runMTC(df, file, data_type, treatmentID, effect_measure, toi,
   analysis_set = "Default", doFixed = TRUE, doRandom = TRUE,
-  max_val = 5, prior = mtc.hy.prior("std.dev", "dunif", 0, max_val),
-  burn_in = 10000, iterations = 20000, save_convergence = TRUE,
-  back_calc = FALSE, includes_placebo = FALSE, placebo_code,
-  report_order = "default")
+  model_type = "consistency", max_val = 5, prior = mtc.hy.prior("std.dev",
+  "dunif", 0, max_val), burn_in = 10000, iterations = 20000,
+  save_convergence = TRUE, back_calc = FALSE, includes_placebo = FALSE,
+  placebo_code, report_order = "default")
 }
 \arguments{
 \item{df}{A \code{data.frame} This should be in one of two formats. Arm level
@@ -60,6 +60,12 @@ underlying \code{mtc.network} function from the \code{gemtc} package}
 \item{doFixed,doRandom}{Logical indicating which model is required. Fixed
 effect, random effect or both. The default is to run both. Set the
 appropriate argument to FALSE if you do not want to run that analysis.}
+
+\item{model_type}{A character string describing the type of model. This is
+passed to the \code{type} argument of the underlying \code{mtc.model}
+function from \code{gemtc}. The underlying function accepts the values
+"consistency", "nodesplit", "ume", or "use". Only consistency has been
+tested in the context of this function.}
 
 \item{max_val}{Used to set \code{om.scale} and create vague priors for the
 between trials heterogeneity. For the log odds-ratio, values between 2
