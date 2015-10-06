@@ -6,7 +6,7 @@
 \usage{
 plotEstimates(df, yvar, xvar = "median", lowLimit = "CrI_lower",
   hiLimit = "CrI_upper", xlabel = "Effect Estimate", noEffectLine = 1,
-  yOrder = NA)
+  reportOrder = "default")
 }
 \arguments{
 \item{df}{A data frame containing summary statistics for the posterior
@@ -20,8 +20,8 @@ the names of the treatments in the network.}
 that contains the variable to be used on the x-axis. Usually this will be
 the median of the posterior distribution of the treatment effect}
 
-\item{lowLimit,}{hiLimit Character strings specifying the names of the
-columns in \code{df} that specify the lower and upper limits of the 95%
+\item{lowLimit,hiLimit}{Character strings specifying the names of the
+columns in \code{df} that specify the lower and upper limits of the 95\%
 credible intervals. If you have followed the work flow in this package
 these will be called 'CrI_lower' and 'CrI_upper' respectively.}
 
@@ -32,12 +32,10 @@ usually the type of effect measure, e.g. 'Odds ratio', 'Rate Ratio' etc.}
 effect. For ratio measures this is usually 1. For mean differences this is
 usually 0.}
 
-\item{yOrder}{A character string giving the name of the column in \code{df}
-  that specifies the order of treatments on the y-axis. The default is NA in
-  which case the treatments will be displayed on the y-axis alphabetically
-  from top to bottom. If a specific order is required this is best specified
-  in a column named 'Order' containing a series of numbers indicating the
-  plotting order from top to bottom.}
+\item{report_order}{A character string indicating whether the treatments
+  should be reported in the order the order they were provided (default) or
+  if a custom order is required. Acceptable values are 'default' or
+  'custom'.}
 }
 \value{
 A ggplot object
@@ -47,7 +45,7 @@ Plot the results of a network meta-analysis
 }
 \details{
 This function should most commonly be used with the output from
-  extractTOI to plot the results for a particular treatment of interest. This
+  \code{extractTOI} to plot the results for a particular treatment of interest. This
   function uses ggplot to do the actual plotting and returns a ggplot object
   which may be further modified if required or just saved to a file.
 }

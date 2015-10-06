@@ -7,7 +7,7 @@
 extractComparison(df)
 }
 \arguments{
-\item{A}{data frame as returned by \code{calcAllPairs}}
+\item{df}{A data frame as returned by \code{calcAllPairs}}
 }
 \value{
 A data frame with additional columns

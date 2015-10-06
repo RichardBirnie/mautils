@@ -4,7 +4,8 @@
 \alias{extractTOI}
 \title{Extract all treatment comparisons involving a specific treatment if interest}
 \usage{
-extractTOI(df, treatments, toi, intervention = TRUE, orderResults = FALSE)
+extractTOI(df, treatments, toi, intervention = TRUE,
+  reportOrder = "default")
 }
 \arguments{
 \item{df}{A data frame as produced by \code{extractMTCResults}}
@@ -25,10 +26,11 @@ in the network}
 an intervention or a comparator (e.g. placebo). This controls which column
 of \code{df} is searched to identify relevant treatment comparisons}
 
-\item{orderResults}{Logical indicating whether the results are returned in a
-  specific order or in the order they were given. The default is
-  \code{FALSE}. If this is set to \code{TRUE} then \code{treatments} must
-  contain a column named 'Order', see above.}
+\item{reportOrder}{A character string indicating whether the treatments
+  should be reported in the order the order they were provided (default) or
+  if a custom order is required. Acceptable values are 'default' or
+  'custom'. If this is set to 'custom' then \code{treatments} must contain a
+  column named 'Order', see above.}
 }
 \value{
 A data frame containing all treatment comparisons involving the

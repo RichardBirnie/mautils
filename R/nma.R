@@ -1,6 +1,271 @@
+#' Run a mixed treatment comparison (MTC, a.k.a network meta-analysis)
+#'
+#' @param df A \code{data.frame} This should be in one of two formats. Arm level
+#'   data must contain the columns 'study' and 'treatment' where study is a
+#'   study id number (1, 2, 3 ...) and treatment is a treatment id number. If
+#'   the data are binary then the data frame should also contain columns
+#'   'responders' and 'sampleSize' reporting the total number of events and
+#'   total number analysed respectively for each arm. Relative effect data (e.g.
+#'   log odds ratio, log rate ratio) must contain the same study and treatment
+#'   columns plus the columns 'diff' and 'std.err'. Set diff=NA for the baseline
+#'   arm. The column std.err should be the standard error of the relative effect
+#'   estimate. For trials with more than two arms set std.err as the standard
+#'   error of the baseline arm. This determines the covariance which is used to
+#'   adjust for the correlation in multiarm studies.
+#' @param file A character string specifying the directory where the results
+#'   will be saved. This function will create a subdirectory 'Results/MTC'
+#'   within this directory will be one or more further directories
+#'   'Results/MTC/FixedEffects' and 'Results/MTC/RamdomEffects' depending on
+#'   the values of \code{doFixed} and \code{doRandom}. These are only created
+#'   if they are required and do not exist already. Each results directory
+#'   will also contain a 'Figures' subdirectory.
+#' @param data_type A character string specifying which type of data has been
+#'   provided. Currently only 'treatment difference' or 'binary' are supported
+#' @param treatmentID A data frame with columns 'description' defining the
+#'   treatment names and 'id' defining the treatment ID numbers. This is used
+#'   to set the \code{treatments} argument of the \code{mtc.network} function
+#'   from \code{gemtc}. An optional third column 'Order' may also be provided.
+#'   If present this should be a column of integers indicating the order in
+#'   which the interventions should be presented in output tables and figures
+#' @param effect_measure A character string indicating what type of effect
+#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc. This is used as a
+#'   label in forest plots so keep it short.
+#' @param toi A named vector specifying the treatments of interest. The names
+#'   should be the treatment names. The values should be the ID number of the
+#'   treatments in the network.
+#' @param analysis_set A character string indicating which analysis set this
+#'   is. This is useful if there are multiple different sets of comparators in
+#'   a single project. If nothing is provided this will be set to the string
+#'   'Default'. This is used to set the \code{description} argument of the
+#'   underlying \code{mtc.network} function from the \code{gemtc} package
+#' @param doFixed,doRandom Logical indicating which model is required. Fixed
+#'   effect, random effect or both. The default is to run both. Set the
+#'   appropriate argument to FALSE if you do not want to run that analysis.
+#' @param max_val Used to set \code{om.scale} and create vague priors for the
+#'   between trials heterogeneity. For the log odds-ratio, values between 2
+#'   and 5 are considered reasonable. Default = 5.
+#' @param prior A function call to \code{mtc.hy.prior} which specifies the type and
+#'   parameters of the prior distribution for the between trials
+#'   heterogeneity. This is passed directly to the \code{hy.prior} argument of
+#'   the underlying \code{mtc.model} function from the \code{gemtc} package.
+#'   The default is a uniform distribution on the between trials standard
+#'   deviation with a range from 0-5. This is adequate for log odds ratios,
+#'   log hazard ratios etc but should be changed if you are working with
+#'   continuous outcomes such as mean difference. For more details see
+#'   \code{\link[gemtc]{mtc.model}} and \code{\link[gemtc]{mtc.hy.prior}}
+#' @param burn_in The number of iterations for the MCMC burn in period
+#'   (Default=10000)
+#' @param iterations The number of iterations from the MCMC simulation to be
+#'   retained to estimate the results (Default=20000)
+#' @param save_convergence Logical indicating whether run and keep plots to
+#'   assess the convergence of the MCMC chains. If TRUE (Default) then this
+#'   plots will be produced for the trace of each chain, autocorrelation
+#'   within each chain and the posterior distribution of each model parameter.
+#' @param back_calc A logical indicating whether results should be back transformed.
+#'   If set to TRUE then log odds ratios (or hazard ratios etc) will
+#'   be converted to odds ratios on plots and print outs. Default is FALSE
+#' @param includes_placebo Logical indicating whether the network includes
+#'   placebo. This requires slightly different handling internally as placebo
+#'   is always the comparator and never the intervention. Default is FALSE. If
+#'   this is set to TRUE then it is essential to also set the
+#'   \code{placebo_code} argument appropriately.
+#' @param placebo_code An integer specifying the ID number of the placebo
+#'   treatment in the network if a placebo is included. Often placebo is given
+#'   the number 1 but not always.
+#' @param report_order A character string indicating whether the treatments
+#'   should be reported in the order the order they were provided (default) or
+#'   if a custom order is required. Acceptable values are 'default' or
+#'   'custom'. If this is set to 'custom' then \code{treatmentID} must contain a
+#'   column named 'Order', see above.
+#'
+#' @details This function provides an interface to run MTC analyses using the
+#'   gemtc package. Although the function has a large number of arguments the
+#'   default values should produce reasonable results in the majority of cases.
+#'   The aim is to abstract away as much of the technical detail as possible so
+#'   that reasonable values are chosen based on the type of data provided.
+#'
+#'   The output of the analysis is automatically rearranged and saved in a
+#'   'report ready' form to save time in downstream processing of the results
+#'
+#'
+#' @seealso \code{\link[gemtc]{mtc.network}}, \code{\link[gemtc]{mtc.model}},
+#'   \code{\link[gemtc]{mtc.run}} \code{\link{extractMTCResults}}
+#'   \code{\link{plotEstimates}}
+
+runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
+                  analysis_set = 'Default', doFixed = TRUE, doRandom = TRUE,
+                  max_val = 5, prior = mtc.hy.prior("std.dev", "dunif", 0, max_val),
+                  burn_in = 10000, iterations = 20000, save_convergence = TRUE,
+                  back_calc = FALSE, includes_placebo = FALSE, placebo_code,
+                  report_order = 'default') {
+  message('Start MTC')
+  #create an mtc.network object
+  #note different data argument for treatment differences versus per arm data
+  #types
+  if (data_type == 'treatment difference') {
+    network = gemtc::mtc.network(
+      data.re = df, treatments = treatmentID[, 1:2], description = analysis_set
+    )
+    #specify likelihood and link appropriate to the data type
+    likelihood = 'normal'
+    link = 'identity'
+  }
+  if (data_type == 'binary') {
+    network = gemtc::mtc.network(
+      data.ab = df, treatments = treatmentID[, 1:2], description = analysis_set
+    )
+    #specify likelihood and link appropriate to the data type
+    likelihood = 'binom'
+    link = 'logit'
+  }
+
+  #set which models are required
+  EffectsModel = c('fixed', 'random')[c(doFixed, doRandom)]
+
+  for (i in 1:length(EffectsModel)) {
+    message('Run MTC: ', EffectsModel[i], ' effects')
+    #set up folders for the results and figures. No need to edit this
+    f = paste0(outcome, '_', analysisCase, '_', Sys.Date(), '.xlsx')
+    MTCresultsFile = file.path(baseFile, 'Results', 'MTC', paste0(capwords(EffectsModel[i]), 'Effects'), f)
+    MTCresDir = dirname(MTCresultsFile)
+    if (!dir.exists(MTCresDir)) {
+      dir.create(MTCresDir, recursive = TRUE)
+    }
+    MTCfigDir = file.path(MTCresDir, 'Figures')
+    if (!file.exists(MTCfigDir)) {
+      dir.create(MTCfigDir, recursive = TRUE)
+    }
+    #save the treatment codes and the input data with the results file
+    rbutils::saveXLSX(
+      as.data.frame(treatmentID), file = MTCresultsFile, sheetName = 'Code',
+      showNA = FALSE, row.names = FALSE, append = TRUE
+    )
+    rbutils::saveXLSX(
+      as.data.frame(df), file = MTCresultsFile, sheetName = 'Data',
+      showNA = FALSE, row.names = FALSE, append = TRUE
+    )
+
+    #create the model object. See ?mtc.model for details
+    message('Run MCMC')
+    if (EffectsModel[i] == 'random' && doRandom == TRUE) {
+      #Random effects model
+      #hy.prior = the prior for the between trials standard deviation
+      #set as a uniform distribution. Upper limit is set from om.scale
+      model = suppressWarnings(
+        gemtc::mtc.model(
+          network, type = modelType, n.chain = 3, likelihood = likelihood,
+          link = link, linearModel = 'random',
+          om.scale = max_val, hy.prior = prior
+        )
+      )
+    } else {
+      #Fixed effects model
+      model = suppressWarnings(
+        gemtc::mtc.model(
+          network, type = modelType, n.chain = 3, likelihood = likelihood,
+          link = link, linearModel = 'fixed',
+          om.scale = max_val
+        )
+      )
+    }
+    #plot(model, layout=igraph::layout.fruchterman.reingold)
+
+    #run the MCMC simulation
+    mtcResults = gemtc::mtc.run(model, n.adapt = 50000, n.iter = 50000,
+                                thin = 1)
+
+    #Save the JAGS (or BUGS) code that was generated for the model
+    #set up a file to save the model. If necessary create the directory
+    message('Save model file')
+    m = paste0(
+      mtcResults$model$linearModel, '_effects_', mtcResults$model$type,'_',
+      '_model_', Sys.Date(),'.txt'
+    )
+    modelFile = file.path(MTCresDir, m)
+    saveModelCode(mtcResults, modelFile)
+
+    if (save_convergence) {
+      message('Save convergence plots')
+      diagDir = file.path(MTCresDir, 'ConvergenceDiagnostics')
+      saveDiagnostics(mtcResults, directory = diagDir)
+      rm(diagDir)
+    }
+
+    #extract the results for the treatment comparisons
+    #this function also saves the results to the excel file specified by resultsFile
+    message('Extract and save results')
+    pairwiseResults = extractMTCResults(
+      mtcResults, resultsFile = MTCresultsFile, expon = back_calc,
+      includesPlacebo = includes_placebo, coding = treatmentID,
+      reportOrder = report_order
+    )
+
+    #slice out results for treatments of interest and save these as separate sheets for convenience
+    #everything vs placebo
+    #ALWAYS APPEND=TRUE OR YOU WILL OVERWRITE THE EXISTING RESULTS
+    message('Drawing plots')
+    if (includes_placebo) {
+      placebo = extractTOI(
+        pairwiseResults, toi = placebo_code, treatments = treatmentID,
+        intervention = FALSE, reportOrder = report_order
+      )
+      saveXLSX(
+        as.data.frame(placebo), file = MTCresultsFile, sheetName = 'Placebo',
+        showNA = FALSE, row.names = FALSE, append = TRUE
+      )
+
+      #make a plot of all treatments vs placebo
+      p = plotEstimates(
+        df = placebo, yvar = 'nameB', xlabel = effect_measure,
+        reportOrder = report_order
+      )
+      #save the plot
+      figFile = file.path(MTCfigDir, 'AllVsPlacebo.jpg')
+      jpeg(
+        file = figFile, width = 22, height = 15, units = 'cm', res = 300,
+        quality = 100
+      )
+      suppressWarnings(print(p))
+      graphics.off()
+      rm(placebo)
+    }
+
+    #slice out results for treatments of interest and save these as separate
+    #sheets for convenience
+    for (i in 1:length(toi)) {
+      n = names(toi)[i]
+      tr = extractTOI(
+        pairwiseResults, toi = toi[i], treatments = treatmentID,
+        intervention = TRUE, reportOrder = report_order
+      )
+      #ALWAYS APPEND=TRUE OR YOU WILL OVERWRITE THE EXISTING RESULTS
+      saveXLSX(
+        as.data.frame(tr), file = MTCresultsFile, sheetName = n, showNA = FALSE,
+        row.names = FALSE, append = TRUE
+      )
+
+      #make a plot for each treatment of interest vs all other treatments
+      p = plotEstimates(
+        df = tr, yvar = 'nameA', xlabel = effect_measure,
+        reportOrder = report_order
+      )
+      #save the plot
+      f = paste0(outcome, ' ', n, 'VsAll.jpg')
+      figFile = file.path(MTCfigDir, f)
+      jpeg(
+        file = figFile, width = 22, height = 15, units = 'cm', res = 300,
+        quality = 100
+      )
+      suppressWarnings(print(p))
+      graphics.off()
+    }
+    rm(tr)
+  }
+}
+
 #' Extract treatment comparison information from mtc summary output
 #'
-#' @param A data frame as returned by \code{calcAllPairs}
+#' @param df A data frame as returned by \code{calcAllPairs}
 #'
 #' @details In the summary output from a network meta-analysis treatment
 #'   comparisons are commonly labelled as 'd.1.2' for the relative effect of
@@ -106,9 +371,10 @@ makeTab = function(results, coding, rounding = 2, reportOrder = 'default', ...) 
   #in the network
   if (reportOrder == 'custom') {
     coding = dplyr::arrange(coding, Order)
+  } else {
+    #order by treatment coding in the network
+    coding$Order = coding$id
   }
-  #order by treatment coding in the network
-  coding$Order = coding$id
 
   #Create a simple data frame to add output
   reportTab = data.frame('Treatment' = coding$id)
@@ -309,7 +575,8 @@ extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
   }
   rt = as.data.frame(reportTab, check.names = FALSE)
   rbutils::saveXLSX(
-    rt, file = resultsFile, sheetName = 'Report', showNA = FALSE, append = TRUE
+    rt, file = resultsFile, sheetName = 'Report', row.names = TRUE,
+    showNA = FALSE, append = TRUE
   )
 
   #extract and save the model fit information
@@ -338,10 +605,11 @@ extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
 #' @param intervention Logical indicating whether the treatment of interest is
 #'   an intervention or a comparator (e.g. placebo). This controls which column
 #'   of \code{df} is searched to identify relevant treatment comparisons
-#' @param orderResults Logical indicating whether the results are returned in a
-#'   specific order or in the order they were given. The default is
-#'   \code{FALSE}. If this is set to \code{TRUE} then \code{treatments} must
-#'   contain a column named 'Order', see above.
+#' @param reportOrder A character string indicating whether the treatments
+#'   should be reported in the order the order they were provided (default) or
+#'   if a custom order is required. Acceptable values are 'default' or
+#'   'custom'. If this is set to 'custom' then \code{treatments} must contain a
+#'   column named 'Order', see above.
 #'
 #' @details This is a simple filtering function to return all treatment
 #'   comparisons involving a specific treatment of interest. This function is
@@ -359,7 +627,7 @@ extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
 #'
 #' @seealso \code{\link{extractMTCResults}}
 extractTOI = function(df, treatments, toi, intervention = TRUE,
-                      orderResults = FALSE) {
+                      reportOrder = 'default') {
 
   #extract the treatment of interest
   if (intervention == TRUE) {
@@ -369,12 +637,12 @@ extractTOI = function(df, treatments, toi, intervention = TRUE,
   }
 
   #sort if required
-  if (intervention == TRUE && orderResults == TRUE) {
+  if (intervention == TRUE && reportOrder == 'custom') {
     df = dplyr::left_join(df, treatments[,2:3], by = c('nameA' = 'description'))
     df = dplyr::arrange(df, Order)
     df$Order = 1:nrow(df)
   }
-  if (intervention == FALSE && orderResults == TRUE) {
+  if (intervention == FALSE && reportOrder == 'custom') {
     df = dplyr::left_join(df, treatments[,2:3], by = c('nameB' = 'description'))
     df = dplyr::arrange(df, Order)
     df$Order = 1:nrow(df)
@@ -457,8 +725,8 @@ saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
 #' @param xvar A character string specifying the name of the column in \code{df}
 #'   that contains the variable to be used on the x-axis. Usually this will be
 #'   the median of the posterior distribution of the treatment effect
-#' @param lowLimit, hiLimit Character strings specifying the names of the
-#'   columns in \code{df} that specify the lower and upper limits of the 95%
+#' @param lowLimit,hiLimit Character strings specifying the names of the
+#'   columns in \code{df} that specify the lower and upper limits of the 95\%
 #'   credible intervals. If you have followed the work flow in this package
 #'   these will be called 'CrI_lower' and 'CrI_upper' respectively.
 #' @param xlabel A character string to be used as a label on the x-axis. This is
@@ -466,15 +734,13 @@ saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
 #' @param noEffectLine An integer indicating where to draw the line of no
 #'   effect. For ratio measures this is usually 1. For mean differences this is
 #'   usually 0.
-#' @param yOrder A character string giving the name of the column in \code{df}
-#'   that specifies the order of treatments on the y-axis. The default is NA in
-#'   which case the treatments will be displayed on the y-axis alphabetically
-#'   from top to bottom. If a specific order is required this is best specified
-#'   in a column named 'Order' containing a series of numbers indicating the
-#'   plotting order from top to bottom.
+#' @param report_order A character string indicating whether the treatments
+#'   should be reported in the order the order they were provided (default) or
+#'   if a custom order is required. Acceptable values are 'default' or
+#'   'custom'.
 #'
 #' @details This function should most commonly be used with the output from
-#'   extractTOI to plot the results for a particular treatment of interest. This
+#'   \code{extractTOI} to plot the results for a particular treatment of interest. This
 #'   function uses ggplot to do the actual plotting and returns a ggplot object
 #'   which may be further modified if required or just saved to a file.
 #'
@@ -484,9 +750,9 @@ saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
 #'   \code{\link[ggplot2]{geom_errorbarh}}
 plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
                          hiLimit = 'CrI_upper', xlabel = 'Effect Estimate',
-                         noEffectLine = 1, yOrder = NA) {
+                         noEffectLine = 1, reportOrder = 'default') {
   df = as.data.frame(df)
-  if (is.na(yOrder)) {
+  if (reportOrder == 'default') {
     df[,yvar] = factor(df[,yvar], levels = sort(unique(df[,yvar])))
     p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = yvar), size = 4)
     p = p + ggplot2::geom_errorbarh(
@@ -494,13 +760,14 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
       height = 0.15
       )
     p = p + ggplot2::scale_y_discrete(limits = rev(levels(df[,yvar])))
-  } else {
-    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = yOrder), size = 4)
+  }
+  if(reportOrder == 'custom') {
+    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = 'Order'), size = 4)
     p = p + ggplot2::geom_errorbarh(
-      ggplot2::aes_string(x = xvar, y = yOrder, xmax = hiLimit, xmin = lowLimit),
+      ggplot2::aes_string(x = xvar, y = 'Order', xmax = hiLimit, xmin = lowLimit),
       height = 0.15
       )
-    p = p + ggplot2::scale_y_reverse(breaks = df[,yOrder], labels = df[,yvar])
+    p = p + ggplot2::scale_y_reverse(breaks = df[,'Order'], labels = df[,yvar])
   }
 
   #set sensible scale for x-axis
