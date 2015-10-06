@@ -121,7 +121,7 @@ runDirect = function(df, file, data_type, effect_code, outcome, effect_measure,
     if (i == 1) {
       dirMA = res
     } else {
-      dirMA = bind_rows(dirMA, res)
+      dirMA = dplyr::bind_rows(dirMA, res)
     }
   }
   #return the table of results
@@ -404,6 +404,8 @@ extractDirectRes = function(metaRes, effect, intervention = 'Int',
   )
 
   #re-arrange the output columns into a more report friendly order
+  #for future versions consider adapting this to use dplyr and select by
+  #name instead of position.
   df = df[,c(5, 1, 3, 14:16, 22:23, 6, 2, 4, 7:13, 17:21)]
 
 }

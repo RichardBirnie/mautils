@@ -1,3 +1,80 @@
+#' Run simple indirect meta-analysis for all possible pairwise comparisons
+#' in a dataset
+#'
+#' @param df A \code{data.frame} This should be in one of two formats. Arm
+#'   level data must contain the columns 'study' and 'treatment' where study
+#'   is a study id number (1, 2, 3 ...) and treatment is a treatment id
+#'   number. Relative effect data (e.g. log odds ratio, log rate ratio) must
+#'   contain the same study and treatment columns plus the columns 'diff' and
+#'   'std.err'. Set diff=NA for the baseline arm. The column std.err should be
+#'   the standard error of the relative effect estimate. For trials with more
+#'   than two arms set std.err as the standard error of the baseline arm. This
+#'   determines the covariance which is used to adjust for the correlation in
+#'   multiarm studies. This is used to identify the set of comparisons
+#'   available in the data set
+#' @param data_type A character string specifying which type of data has been
+#'   provided. Currently only 'treatment difference' or 'binary' are supported
+#' @param direct_results A data frame containing the results of direct
+#'   meta-analysis as returned by \code{runDirect}. These results are required
+#'   to provide the inputs for the indirect comparisons
+#' @param effect_type A character string indicating what kind of analysis is
+#'   required. Set to 'Fixed' for fixed effect, 'Random' for random effects or
+#'   'all' to get both (Default).
+#' @param back_calc A logical indicating whether results should be back transformed.
+#'   This is used to set the corresponding \code{backtransf} argument of the
+#'   underlying functions from the \code{meta} package. If
+#'   \code{backtransf=TRUE} then log odds ratios (or hazard ratios etc) will
+#'   be converted to odds ratios on plots and print outs. Default is FALSE
+#' @param order_treatments An optional argument to specify the order in which
+#'   treatment comparisons are sorted in the output. The default is NA in
+#'   which case comparisons will be sorted alphabetically by intervention. If
+#'   a specific order is required then this should be provided as a data frame
+#'   with two columns named 'description' and 'Order'. Note that column
+#'   headers are specific and case sensitive. The description column should
+#'   contain the names of the treatments \emph{exactly} as they are specified
+#'   in the data set. The id column should contain the numbered order of
+#'   treatments required.
+#'
+#' @details This function performs indirect meta-analysis using the Bucher
+#'   method for all possible comparisons in a given data set. This function
+#'   takes a set of treatment comparisons from one or more studies and
+#'   identifies all possible indirect comparisons where two treatments can be
+#'   connected via a common comparator. If there is more than one way to
+#'   connect two treatments then all possible variations are calculated. This
+#'   function calls \code{doBucher} internally to calculate the
+#'   treatment effects
+#'
+#'   The inputs for this function will usually be the results from direct
+#'   meta-analysis for a given set of treatments. The recommended workflow is
+#'   to use \code{\link{runDirect}} to perform head to head meta-analysis for
+#'   a given set of treatments then use the resulting data frame to provide
+#'   the inputs for this function.
+#'
+#' @return A data frame containing the results of all possible indirect
+#'   comparisons in the data set. The help page for \code{\link{doBucher}}
+#'   provides a detailed description of the columns in the output
+#'
+#' @seealso \code{\link{doBucher}}, \code{\link{runDirect}}
+runIndirect = function(df, data_type, direct_results, effect_type = 'all',
+                       back_calc = FALSE, order_treatments = NA) {
+  message('Run indirect (Bucher) meta-analysis')
+
+  #convert data to a suitable format
+  reDataDirect = formatDataToDirectMA(df, dataType = data_type)
+
+  indMA = doBucher(
+    comparisons = reDataDirect[,1:4], direct = direct_results,
+    effectType = effect_type, backtransf = back_calc
+  )
+  if(is.data.frame(order_treatments)){
+    #set the order of results
+    indMA = dplyr::left_join(indMA, order_treatments, by = c('Intervention' = 'description'))
+    indMA = dplyr::arrange(indMA, Order, Comparator, Common, Model)
+  } else {
+    indMA = dplyr::arrange(indMA, Intervention, Model)
+  }
+}
+
 #'Create an igraph object
 #' @param edgelist A two column matrix describing the connections _from_ the first
 #'   column _to_ the second column. The values are the treatment numbers
@@ -293,5 +370,12 @@ doBucher = function(comparisons, direct, effectType = 'all',
 
   #fix variable types
   df = rbutils::factorToCharacter(df)
+
+  #rearrange the columns into a more report friendly format
+  df = dplyr::select(
+    df, Effect, Intervention, Comparator, Common, TE.ind, lower.ind, upper.ind,
+    n.studies, Studies, Model, log.TE.ind, log.lower.ind, log.upper.ind,
+    se.log.TE.ind
+  )
 
 }
