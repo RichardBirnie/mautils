@@ -131,7 +131,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
   for (i in 1:length(EffectsModel)) {
     message('Run MTC: ', EffectsModel[i], ' effects')
     #set up folders for the results and figures. No need to edit this
-    f = paste0(outcome, '_', analysisCase, '_', Sys.Date(), '.xlsx')
+    f = paste0(outcome, '_', analysisCase, '.xlsx')
     MTCresultsFile = file.path(baseFile, 'Results', 'MTC', paste0(capwords(EffectsModel[i]), 'Effects'), f)
     MTCresDir = dirname(MTCresultsFile)
     if (!dir.exists(MTCresDir)) {
@@ -185,7 +185,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     message('Save model file')
     m = paste0(
       mtcResults$model$linearModel, '_effects_', mtcResults$model$type,'_',
-      '_model_', Sys.Date(),'.txt'
+      '_model', '.txt'
     )
     modelFile = file.path(MTCresDir, m)
     saveModelCode(mtcResults, modelFile)
