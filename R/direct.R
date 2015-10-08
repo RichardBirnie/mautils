@@ -13,6 +13,14 @@
 #'   estimate. For trials with more than two arms set std.err as the standard
 #'   error of the baseline arm. This determines the covariance which is used to
 #'   adjust for the correlation in multiarm studies.
+#' @param treatments An optional (but recommended) data frame describing the
+#'   treatments. If present then this data frame should contain the columns
+#'   'id', 'description', 'shortname'. id gives the ID number of each treatment,
+#'   description gives the full name of each treatment, shortname gives a
+#'   shortened version of the name for each treatment. shortname is used for
+#'   labels and filenames in forest plots which is the main purpose of this
+#'   argument. If this is not provided then forest plots will be named
+#'   'Comparison1', Comparison2 etc.
 #' @param file A character string specifying the directory where the results
 #'   will be saved. This function will create two new subdirectories
 #'   'Results/Direct' and 'Results/Direct/Figures' to store the output. These
@@ -66,7 +74,7 @@
 #'
 #' @seealso \code{\link{formatDataToDirectMA}}, \code{\link{doDirectMeta}},
 #'   \code{\link{drawForest}}, \code{\link{extractDirectRes}}
-runDirect = function(df, file, data_type, effect_code, outcome, effect_measure,
+runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome, effect_measure,
                      back_calc = FALSE, forest_plot = TRUE,
                      show_fixed = TRUE, show_random = TRUE) {
 
@@ -94,7 +102,21 @@ runDirect = function(df, file, data_type, effect_code, outcome, effect_measure,
   if(forest_plot) {
     message('Drawing forest plots')
     for (i in 1:length(directRes)) {
-      f = paste0(outcome, '_Comparison', i, '.jpg')
+
+      #set up meaningful file names and treatment labels if possible
+      if('shortname' %in% colnames(treatments)) {
+        int = treatments$shortname[treatments$id == directRes[[i]]$e.code]
+        com = treatments$shortname[treatments$id == directRes[[i]]$c.code]
+        f = paste0(outcome, '_', int, '_', com, '.jpg')
+        directRes[[i]]$e.name = int
+        directRes[[i]]$c.name = com
+      } else {
+        #fall back if nothing more helpful is provided
+        f = paste0(outcome, '_Comparison', i, '.jpg')
+        directRes[[i]]$e.name = directRes[[i]]$label.e
+        directRes[[i]]$c.name = directRes[[i]]$label.c
+      }
+
       figFile = file.path(directFigDir, f)
       jpeg(
         file = figFile, width = 25, height = 15, units = 'cm', res = 300,
@@ -452,6 +474,12 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
   xlower = ifelse(limits[1] < 0.2, round(limits[1], 1), 0.2)
   xupper = ifelse(limits[2] > 5, round(limits[2]), 5)
   xlimits = c(xlower, xupper)
+
+  #check and set sensible treatment names if available
+  if('e.name' %in% names(meta)){
+    meta$label.e = meta$e.name
+    meta$label.c = meta$c.name
+  }
 
   #don't show the pooled estimate if there is only one study
   if (meta$k == 1) {

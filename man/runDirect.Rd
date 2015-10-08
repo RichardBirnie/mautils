@@ -5,9 +5,9 @@
 \title{Run direct head to head meta-analysis for all possible pairwise comparisons
 in a dataset}
 \usage{
-runDirect(df, file, data_type, effect_code, outcome, effect_measure,
-  back_calc = FALSE, forest_plot = TRUE, show_fixed = TRUE,
-  show_random = TRUE)
+runDirect(df, treatments = NULL, file, data_type, effect_code, outcome,
+  effect_measure, back_calc = FALSE, forest_plot = TRUE,
+  show_fixed = TRUE, show_random = TRUE)
 }
 \arguments{
 \item{df}{A \code{data.frame} This should be in one of two formats. Arm level
@@ -22,6 +22,15 @@ arm. The column std.err should be the standard error of the relative effect
 estimate. For trials with more than two arms set std.err as the standard
 error of the baseline arm. This determines the covariance which is used to
 adjust for the correlation in multiarm studies.}
+
+\item{treatments}{An optional (but recommended) data frame describing the
+treatments. If present then this data frame should contain the columns
+'id', 'description', 'shortname'. id gives the ID number of each treatment,
+description gives the full name of each treatment, shortname gives a
+shortened version of the name for each treatment. shortname is used for
+labels and filenames in forest plots which is the main purpose of this
+argument. If this is not provided then forest plots will be named
+'Comparison1', Comparison2 etc.}
 
 \item{file}{A character string specifying the directory where the results
 will be saved. This function will create two new subdirectories
