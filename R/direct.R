@@ -463,6 +463,6 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
   meta::forest(
     meta, hetlab = NULL, text.I2 = 'I-sq', text.tau2 = 'tau-sq', xlim = xlimits,
     comb.fixed = showFixed, comb.random = showRandom, lty.fixed = 0,
-    lty.random = 0, just.studlab='right', ...
+    lty.random = 0, just.studlab='right', fontsize=10, ...
   )
 }
