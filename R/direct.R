@@ -284,7 +284,24 @@ doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE) {
   resList = list()
 
   #identify the set of treatment comparisons present in the data
-  comparisons = dplyr::distinct(df[,3:4])
+  com = dplyr::distinct(df[,3:4])
+  comparisons = data.frame(comparator=NA, treatment=NA)
+  for (i in 1:nrow(com)) {
+    if (i == 1) {
+      comparisons = com[i,]
+    } else {
+      #check if we have already have this comparison either way around
+      f_test = dplyr::filter(comparisons, comparator == com$comparator[i],
+                    treatment == comparisons$treatment[i]) %>% nrow()
+      r_test = dplyr::filter(comparisons, comparator == com$treatment[i],
+                    treatment == com$comparator[i]) %>% nrow()
+      #Only add this contrast to the comparison set if it is not already
+      #included in either orientation
+      if (f_test == 0 & r_test == 0) {
+        comparisons[nrow(comparisons) + 1,] = com[i,]
+      }
+    }
+  }
 
   for (i in 1:nrow(comparisons)) {
     #get data for the first comparison
