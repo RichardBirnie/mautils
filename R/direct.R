@@ -290,9 +290,22 @@ doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE) {
     #get data for the first comparison
     comp = dplyr::filter(df, comparator == comparisons$comparator[i],
                   treatment == comparisons$treatment[i])
+    #check for studies that report the inverse comparison
+    inv_comp = dplyr::filter(df, comparator == comparisons$treatment[i],
+                         treatment == comparisons$comparator[i])
 
     #run the analysis for different data types
     if (dataType == 'treatment difference') {
+      #if there are any studies reporting the inverse of the required comparison
+      #then flip these to give the preferred comparison e.g. flip B vs A to give A vs B
+      if(nrow(inv_comp) >0){
+        inv_comp$diff = -inv_comp$diff
+        inv_comp[, c('comparator', 'treatment')] = inv_comp[, c('treatment', 'comparator')]
+        inv_comp[, c('NumberAnalysedComparator', 'NumberAnalysedTreatment')] = inv_comp[, c('NumberAnalysedTreatment', 'NumberAnalysedComparator')]
+        inv_comp[, c('ComparatorName', 'TreatmentName')] = inv_comp[, c('TreatmentName', 'ComparatorName')]
+        comp = bind_rows(comp, inv_comp)
+      }
+
       #Generic inverse variance method for treatment differences
       #backtransf=TRUE converts log effect estimates (e.g log OR) back to linear scale
       directRes = meta::metagen(
