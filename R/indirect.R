@@ -107,7 +107,6 @@ runIndirect = function(df, data_type, direct_results, effect_type = 'all',
 #' Return all combinations of nodes with a set path length
 #'
 #' @param g An igraph object
-#' @param len Integer. The desired path length. Default = 2.
 #'
 #' @details A function to search an igraph object and return
 #'  all combinations of nodes connected by a certain path
@@ -116,14 +115,43 @@ runIndirect = function(df, data_type, direct_results, effect_type = 'all',
 #'
 #' @return A data frame
 #'
-.getPathsByLength = function(g, len = 2) {
-  sp = igraph::shortest.paths(g)
-  sp[upper.tri(sp,TRUE)] = NA
-  wp = which(sp == len, arr.ind = TRUE)
-  mapply(function(a,b)
-    igraph::get.all.shortest.paths(
-      g, from = a, to = b, mode = 'all'
-    ), wp[,1], wp[,2])
+# .getPathsByLength = function(g, len = 2) {
+#   sp = igraph::shortest.paths(g)
+#   sp[upper.tri(sp,TRUE)] = NA
+#   wp = which(sp == len, arr.ind = TRUE)
+#   mapply(function(a,b)
+#     igraph::get.all.shortest.paths(
+#       g, from = a, to = b, mode = 'all'
+#     ), wp[,1], wp[,2])
+# }
+
+# .getPathsByLength = function(g) {
+#   sp = igraph::shortest.paths(g)
+#   sp[upper.tri(sp,TRUE)] = NA
+#   wp = which(sp == 2, arr.ind = TRUE)
+#   paths = lapply(1:nrow(wp), function(i) {
+#     extractPaths(g = g, a = wp[i,1], b = wp[i,2])
+#   })
+#   paths = dplyr::bind_rows(paths) %>%
+#     dplyr::arrange(from, to, via)
+# }
+
+getPaths = function(g){
+  nodes = V(g)
+  paths = lapply(nodes, extractPaths, g=g)
+  paths = dplyr::bind_rows(paths) %>%
+    dplyr::arrange(from, to, via)
+}
+
+extractPaths = function(g, start) {
+  paths = igraph::all_simple_paths(g, from = start, mode='all')
+  pathlength = sapply(paths, length)
+  paths = paths[pathlength == 3]
+  paths = lapply(paths, function(x){
+    x = as.numeric(x)
+    data.frame(from=x[1], to=x[3], via=x[2])
+  })
+  paths = dplyr::bind_rows(paths)
 }
 
 #' Simple indirect (Bucher) meta-analysis
@@ -279,14 +307,19 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model,
 doBucher = function(comparisons, direct, effectType = 'all',
                     backtransf = FALSE) {
 
-  #take information describing available comparisons from the direct MA dataset
+  #get all the pairs of comparisons
   connections = dplyr::select(comparisons, from = treatment, to = comparator)
+
+  #build a graph
   g = .buildGraph(connections)
 
   #get the set of possible Bucher comparisons
-  bucherSet = .getPathsByLength(g, 2)
+  #all possible paths with exactly 3 nodes
+  # bucherSet = .getPathsByLength(g, 2)
+  bucherSet = getPaths(g)
 
-  for (i in 1:ncol(bucherSet)) {
+
+  for (i in 1:nrow(bucherSet)) {
     #for each comparison get the list of possible alternatives
     res = bucherSet[,i]$res
 
