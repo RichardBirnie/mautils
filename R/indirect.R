@@ -115,35 +115,14 @@ runIndirect = function(df, data_type, direct_results, effect_type = 'all',
 #'
 #' @return A data frame
 #'
-# .getPathsByLength = function(g, len = 2) {
-#   sp = igraph::shortest.paths(g)
-#   sp[upper.tri(sp,TRUE)] = NA
-#   wp = which(sp == len, arr.ind = TRUE)
-#   mapply(function(a,b)
-#     igraph::get.all.shortest.paths(
-#       g, from = a, to = b, mode = 'all'
-#     ), wp[,1], wp[,2])
-# }
-
-# .getPathsByLength = function(g) {
-#   sp = igraph::shortest.paths(g)
-#   sp[upper.tri(sp,TRUE)] = NA
-#   wp = which(sp == 2, arr.ind = TRUE)
-#   paths = lapply(1:nrow(wp), function(i) {
-#     extractPaths(g = g, a = wp[i,1], b = wp[i,2])
-#   })
-#   paths = dplyr::bind_rows(paths) %>%
-#     dplyr::arrange(from, to, via)
-# }
-
-getPaths = function(g){
-  nodes = V(g)
-  paths = lapply(nodes, extractPaths, g=g)
+.getPaths = function(g){
+  nodes = igraph::V(g)
+  paths = lapply(nodes, .extractPaths, g=g)
   paths = dplyr::bind_rows(paths) %>%
     dplyr::arrange(from, to, via)
 }
 
-extractPaths = function(g, start) {
+.extractPaths = function(g, start) {
   paths = igraph::all_simple_paths(g, from = start, mode='all')
   pathlength = sapply(paths, length)
   paths = paths[pathlength == 3]
@@ -202,7 +181,7 @@ extractPaths = function(g, start) {
 #'  and comparator
 #'  \item \code{Effect} The type of effect measure. Takes the
 #'    value of the \code{effect} argument
-#'  \item \code{Model} The type of model. Fixed effect or Random Effects.
+#'  \item \code{Model} The type of model. Should be 'Fixed', 'Random' or NA
 #'  \item \code{log.TE.ind} The treatment effect on log scale, e.g. log OR
 #'  \item \code{log.lower.ind}, \code{log.upper.ind} The upper and lower 95\% confidence
 #'    intervals for the log treatment effect
@@ -315,92 +294,79 @@ doBucher = function(comparisons, direct, effectType = 'all',
 
   #get the set of possible Bucher comparisons
   #all possible paths with exactly 3 nodes
-  # bucherSet = .getPathsByLength(g, 2)
-  bucherSet = getPaths(g)
-
+  bucherSet = .getPaths(g)
 
   for (i in 1:nrow(bucherSet)) {
-    #for each comparison get the list of possible alternatives
-    res = bucherSet[,i]$res
+    triplet = bucherSet[i,]
+    #identify the corresponding comparisons in the direct results
+    #get the data related to the current indirect comparison
+    currComp = dplyr::filter(direct,
+      (direct$InterventionCode %in% triplet & direct$ComparatorCode %in% triplet)
+    )
+    #check for the direct comparison and remove it
+    removeDirect = !(
+      (currComp$InterventionCode == triplet$from & currComp$ComparatorCode == triplet$to) |
+        (currComp$InterventionCode == triplet$to & currComp$ComparatorCode == triplet$from)
+      )
+    indAll = currComp[removeDirect,]
 
-    for (j in 1:length(res)) {
-      #take the current triplet and get the edges connecting those treatments
-      #the middle element of the triplet is the common comparator
-      triplet = as.numeric(bucherSet[,i]$res[[j]])
-
-      #identify the corresponding comparisons in the direct results
-      #control which set of results we want. Default is all
+    #control which set of results we want. Default is all
+    if(!all(is.na(indAll$Model))){
       if (effectType == 'all') {
         mod = c('Fixed', 'Random')
       } else {
         mod = effectType
       }
-      for (k in 1:length(mod)) {
-        currComp = filter(
-          direct, (direct$InterventionCode %in% triplet & direct$ComparatorCode %in% triplet),
-          (Model == mod[k] | is.na(Model))
-        )
-
-        #if the common treatment is the intervention rather than the comparator
-        #then we need to invert the treatment effect
-        ix = currComp$InterventionCode == triplet[2]
-        if (any(ix) == TRUE) {
-          currComp$log.TE[ix] = -currComp$log.TE[ix]
-          currComp[ix, c('InterventionCode', 'ComparatorCode')] = currComp[ix, c('ComparatorCode', 'InterventionCode')]
-          currComp[ix, c('Intervention', 'Comparator')] = currComp[ix, c('Comparator', 'Intervention')]
-        }
-
-        #run the comparison
-        e = currComp$Effect[1]
-        m = currComp$Model[!is.na(currComp$Model)]
-        abTE = currComp$log.TE[currComp$InterventionCode == triplet[1]]
-        se.abTE = currComp$seTE.log[currComp$InterventionCode == triplet[1]]
-        cbTE = currComp$log.TE[currComp$InterventionCode == triplet[3]]
-        se.cbTE = currComp$seTE.log[currComp$InterventionCode == triplet[3]]
-        int = currComp$Intervention[currComp$InterventionCode == triplet[1]]
-        com = currComp$Intervention[currComp$InterventionCode == triplet[3]]
-        indMA = bucher(
-          abTE = abTE, se.abTE = se.abTE,
-          cbTE = cbTE, se.cbTE = se.cbTE,
-          backtransf = backtransf, effect = e,
-          model = ifelse(length(m) == 0, NA, m),
-          intervention = int, comparator = com,
-          common = currComp$Comparator[1],
-          ab.studies = currComp$studies[1],
-          cb.studies = currComp$studies[2]
-        )
-
-        #collect FE and RE results
-        if (k == 1) {
-          fere = indMA
-        } else {
-          fere = rbind(fere, indMA)
-        }
-
-      }
-      #assemble the results
-      if (j == 1) {
-        ind.df = fere
-      } else {
-        ind.df = rbind(ind.df, fere)
-      }
-    }
-    if (i == 1) {
-      df = ind.df
     } else {
-      df = rbind(df, ind.df)
+      mod = NA
     }
-  }
-  #calculate the inverse comparisons
-  df_inv = df
-  df_inv[, c('Intervention', 'Comparator')] = df[, c('Comparator', 'Intervention')]
-  df_inv$log.TE.ind = -df$log.TE.ind
-  df_inv$log.lower.ind = df_inv$log.TE.ind - (1.96 * df_inv$se.log.TE.ind)
-  df_inv$log.upper.ind = df_inv$log.TE.ind + (1.96 * df_inv$se.log.TE.ind)
-  df_inv[,10:12] = exp(df_inv[,6:8])
 
-  #combine results
-  df = rbind(df, df_inv)
+    for (k in 1:length(mod)) {
+      #get the data for the preferred model for current indirect comparison
+      #Fixed Effect or Random effect
+      indComp = dplyr::filter(indAll, (Model == mod[k] | is.na(Model)) )
+
+      #if the common treatment is the intervention rather than the comparator
+      #then we need to invert the treatment effect
+      ix = indComp$InterventionCode == triplet$via
+      if (any(ix) == TRUE) {
+        indComp$log.TE[ix] = -indComp$log.TE[ix]
+        indComp[ix, c('InterventionCode', 'ComparatorCode')] = indComp[ix, c('ComparatorCode', 'InterventionCode')]
+        indComp[ix, c('Intervention', 'Comparator')] = indComp[ix, c('Comparator', 'Intervention')]
+      }
+
+      #run the comparison
+      e = indComp$Effect[1]
+      abTE = indComp$log.TE[indComp$InterventionCode == triplet$from]
+      se.abTE = indComp$seTE.log[indComp$InterventionCode == triplet$from]
+      cbTE = indComp$log.TE[indComp$InterventionCode == triplet$to]
+      se.cbTE = indComp$seTE.log[indComp$InterventionCode == triplet$to]
+      int = indComp$Intervention[indComp$InterventionCode == triplet$from]
+      com = indComp$Intervention[indComp$InterventionCode == triplet$to]
+      common = indComp$Comparator[indComp$ComparatorCode == triplet$via][1]
+      indMA = bucher(
+        abTE = abTE, se.abTE = se.abTE,
+        cbTE = cbTE, se.cbTE = se.cbTE,
+        backtransf = backtransf, effect = e,
+        model = mod[k], intervention = int,
+        comparator = com, common = common,
+        ab.studies = indComp$studies[1],
+        cb.studies = indComp$studies[2]
+      )
+
+      #collect FE and RE results
+      if (k == 1) {
+        fere = indMA
+      } else {
+        fere = rbind(fere, indMA)
+      }
+    } #end k
+    if (i == 1) {
+      df = fere
+    } else {
+      df = rbind(df, fere)
+    }
+  } #end i
   df = dplyr::arrange(df, dplyr::desc(Intervention), dplyr::desc(Comparator))
 
   #fix variable types

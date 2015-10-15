@@ -48,7 +48,7 @@ A data frame with the following columns:
  and comparator
  \item \code{Effect} The type of effect measure. Takes the
    value of the \code{effect} argument
- \item \code{Model} The type of model. Fixed effect or Random Effects.
+ \item \code{Model} The type of model. Should be 'Fixed', 'Random' or NA
  \item \code{log.TE.ind} The treatment effect on log scale, e.g. log OR
  \item \code{log.lower.ind}, \code{log.upper.ind} The upper and lower 95\% confidence
    intervals for the log treatment effect
