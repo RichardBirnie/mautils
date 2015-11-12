@@ -1,7 +1,7 @@
 Package: mautils
 Type: Package
 Title: Utilities to facilitate an automated workflow for meta-analysis
-Version: 0.1
+Version: 0.2
 Date: 2015-09-23
 Authors@R: person("Richard", "Birnie", email="richard.birnie@googlemail.com", role=c("aut", "cre"))
 Description: This package provides a collection of helper functions to support an automated workflow
