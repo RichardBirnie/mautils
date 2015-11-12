@@ -5,11 +5,12 @@
 \title{Run a mixed treatment comparison (MTC, a.k.a network meta-analysis)}
 \usage{
 runMTC(df, file, data_type, treatmentID, effect_measure, toi,
-  analysis_set = "Default", doFixed = TRUE, doRandom = TRUE,
-  model_type = "consistency", max_val = 5, prior = mtc.hy.prior("std.dev",
-  "dunif", 0, max_val), burn_in = 10000, iterations = 20000,
-  save_convergence = TRUE, back_calc = FALSE, includes_placebo = FALSE,
-  placebo_code, report_order = "default")
+  analysis_set = "Default", outcome, analysis_case, doFixed = TRUE,
+  doRandom = TRUE, model_type = "consistency", max_val = 5,
+  prior = mtc.hy.prior("std.dev", "dunif", 0, max_val), burn_in = 10000,
+  iterations = 20000, save_convergence = TRUE, back_calc = FALSE,
+  includes_placebo = FALSE, placebo_code, report_order = "default",
+  check_inconsistency = TRUE)
 }
 \arguments{
 \item{df}{A \code{data.frame} This should be in one of two formats. Arm level
@@ -56,6 +57,11 @@ is. This is useful if there are multiple different sets of comparators in
 a single project. If nothing is provided this will be set to the string
 'Default'. This is used to set the \code{description} argument of the
 underlying \code{mtc.network} function from the \code{gemtc} package}
+
+\item{outcome}{A character string indicating which outcome is being analysed.}
+
+\item{analysis_case}{A character string indicating what the current analysis
+case is e.g. 'Base Case'}
 
 \item{doFixed,doRandom}{Logical indicating which model is required. Fixed
 effect, random effect or both. The default is to run both. Set the
@@ -107,10 +113,15 @@ treatment in the network if a placebo is included. Often placebo is given
 the number 1 but not always.}
 
 \item{report_order}{A character string indicating whether the treatments
-  should be reported in the order the order they were provided (default) or
-  if a custom order is required. Acceptable values are 'default' or
-  'custom'. If this is set to 'custom' then \code{treatmentID} must contain a
-  column named 'Order', see above.}
+should be reported in the order the order they were provided (default) or
+if a custom order is required. Acceptable values are 'default' or
+'custom'. If this is set to 'custom' then \code{treatmentID} must contain a
+column named 'Order', see above.}
+
+\item{check_inconsistency}{A logical indicating whether checks for
+  inconsistency should be performed. If set to \code{TRUE} (default) then the
+  \code{mtc.nodesplit} function from gemtc is used to run all possible
+  nodesplitting models for the current network.}
 }
 \description{
 Run a mixed treatment comparison (MTC, a.k.a network meta-analysis)
@@ -127,7 +138,7 @@ This function provides an interface to run MTC analyses using the
 }
 \seealso{
 \code{\link[gemtc]{mtc.network}}, \code{\link[gemtc]{mtc.model}},
-  \code{\link[gemtc]{mtc.run}} \code{\link{extractMTCResults}}
-  \code{\link{plotEstimates}}
+  \code{\link[gemtc]{mtc.run}}, \code{\link[gemtc]{mtc.run}},
+  \code{\link{extractMTCResults}}, \code{\link{plotEstimates}}
 }
 

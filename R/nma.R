@@ -38,6 +38,9 @@
 #'   a single project. If nothing is provided this will be set to the string
 #'   'Default'. This is used to set the \code{description} argument of the
 #'   underlying \code{mtc.network} function from the \code{gemtc} package
+#' @param outcome A character string indicating which outcome is being analysed.
+#' @param analysis_case A character string indicating what the current analysis
+#'   case is e.g. 'Base Case'
 #' @param doFixed,doRandom Logical indicating which model is required. Fixed
 #'   effect, random effect or both. The default is to run both. Set the
 #'   appropriate argument to FALSE if you do not want to run that analysis.
@@ -82,6 +85,10 @@
 #'   if a custom order is required. Acceptable values are 'default' or
 #'   'custom'. If this is set to 'custom' then \code{treatmentID} must contain a
 #'   column named 'Order', see above.
+#' @param check_inconsistency A logical indicating whether checks for
+#'   inconsistency should be performed. If set to \code{TRUE} (default) then the
+#'   \code{mtc.nodesplit} function from gemtc is used to run all possible
+#'   nodesplitting models for the current network.
 #'
 #' @details This function provides an interface to run MTC analyses using the
 #'   gemtc package. Although the function has a large number of arguments the
@@ -94,16 +101,16 @@
 #'
 #'
 #' @seealso \code{\link[gemtc]{mtc.network}}, \code{\link[gemtc]{mtc.model}},
-#'   \code{\link[gemtc]{mtc.run}} \code{\link{extractMTCResults}}
-#'   \code{\link{plotEstimates}}
+#'   \code{\link[gemtc]{mtc.run}}, \code{\link[gemtc]{mtc.run}},
+#'   \code{\link{extractMTCResults}}, \code{\link{plotEstimates}}
 
 runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
-                  analysis_set = 'Default', doFixed = TRUE, doRandom = TRUE,
-                  model_type = 'consistency', max_val = 5,
-                  prior = mtc.hy.prior("std.dev", "dunif", 0, max_val),
+                  analysis_set = 'Default', outcome, analysis_case,
+                  doFixed = TRUE, doRandom = TRUE, model_type = 'consistency',
+                  max_val = 5, prior = mtc.hy.prior("std.dev", "dunif", 0, max_val),
                   burn_in = 10000, iterations = 20000, save_convergence = TRUE,
                   back_calc = FALSE, includes_placebo = FALSE, placebo_code,
-                  report_order = 'default') {
+                  report_order = 'default', check_inconsistency = TRUE) {
   message('Start MTC')
   #create an mtc.network object
   #note different data argument for treatment differences versus per arm data
@@ -131,8 +138,9 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
   for (i in 1:length(EffectsModel)) {
     message('Run MTC: ', EffectsModel[i], ' effects')
     #set up folders for the results and figures. No need to edit this
-    f = paste0(outcome, '_', analysisCase, '.xlsx')
-    MTCresultsFile = file.path(baseFile, 'Results', 'MTC', paste0(capwords(EffectsModel[i]), 'Effects'), f)
+    f = paste0(outcome, '_', analysis_case, '.xlsx')
+    MTCresultsFile = file.path(baseFile, 'Results', 'MTC',
+                               paste0(capwords(EffectsModel[i]), 'Effects'), f)
     MTCresDir = dirname(MTCresultsFile)
     if (!dir.exists(MTCresDir)) {
       dir.create(MTCresDir, recursive = TRUE)
@@ -177,7 +185,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     #plot(model, layout=igraph::layout.fruchterman.reingold)
 
     #run the MCMC simulation
-    mtcResults = gemtc::mtc.run(model, n.adapt = 50000, n.iter = 50000,
+    mtcResults = gemtc::mtc.run(model, n.adapt = burn_in, n.iter = iterations,
                                 thin = 1)
 
     #Save the JAGS (or BUGS) code that was generated for the model
@@ -206,9 +214,9 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       reportOrder = report_order
     )
 
-    #slice out results for treatments of interest and save these as separate sheets for convenience
-    #everything vs placebo
-    #ALWAYS APPEND=TRUE OR YOU WILL OVERWRITE THE EXISTING RESULTS
+    #slice out results for treatments of interest and save these as separate
+    #sheets for convenience everything vs placebo ALWAYS APPEND=TRUE OR YOU WILL
+    #OVERWRITE THE EXISTING RESULTS
     message('Drawing plots')
     if (includes_placebo) {
       placebo = extractTOI(
@@ -266,6 +274,30 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       graphics.off()
     }
     rm(tr)
+
+    #check for presence of inconsistency in the network using node splitting
+    #node splitting function provided by gemtc
+    if(check_inconsistency){
+      splitRes = gemtc::mtc.nodesplit(
+        network = network, comparisons = gemtc::mtc.nodesplit.comparisons(network),
+        n.chain = 3, likelihood = likelihood, link = link,
+        linearModel = EffectsModel[i], hy.prior = prior, om.scale = max_val,
+        n.adapt = burn_in, n.iter = iterations
+      )
+
+      #format the node splitting results as a more useful data frame
+      #and save the output
+      nsRes = extractNodesplit(splitRes, treatments = treatmentID[,1:2], backtransf = back_calc)
+      incDir = file.path(MTCresDir, 'Inconsistency')
+      if(!dir.exists(incDir)){
+        dir.create(incDir, showWarnings = FALSE, recursive = TRUE)
+      }
+      incFile = file.path(incDir, paste0(outcome, '_', analysis_case, '_inconsistency.xlsx'))
+      rbutils::saveXLSX(
+        as.data.frame(nsRes), file = incFile, sheetName = 'Inconsistency', showNA = FALSE,
+        row.names = FALSE, append = TRUE
+      )
+    }
   }
 }
 
@@ -655,6 +687,79 @@ extractTOI = function(df, treatments, toi, intervention = TRUE,
   }
 
   return(df)
+}
+
+#' Extract node splitting results
+#'
+#' @param ns.res An object of class \code{mtc.nodesplit}
+#' @param treatments A data frame with columns 'description' defining the
+#'   treatment names and 'id' defining the treatment ID numbers.
+#' @param back_calc A logical indicating whether results should be back transformed.
+#'   If set to TRUE then log odds ratios (or hazard ratios etc) will
+#'   be converted to odds ratios (or hazard ratios etc).
+#'
+#' @details This function takes the output from the function mtc.nodesplit and
+#'   returns a data frame of the results for each treatment comparison that can
+#'   be split. The results are presented as one row per treatment comparison.
+#'
+#'
+#' @return A data frame. Column headers starting 'dir.' are the treatment effect
+#'   and corresponding 95\% confidence intervals for the direct comparison. Column
+#'   headers starting 'ind.' report the same information for the indirect
+#'   comparison. Column headers starting 'cons.' report the pooled estimate
+#'   using both direct and indirect evidence under a standard consistency model.
+#'   Columns labelled RoR report the ratio of direct:indirect effect estimates
+#'   and the corresponding 95\% confidence interval
+#'
+#' @seealso \code{\link[gemtc]{mtc.nodesplit}}
+extractNodesplit = function(ns.res, treatments, backtransf) {
+  #get summary and retrieve direct, indirect and consistency effect estimates
+  ns.res = summary(ns.res)
+  splitDir = ns.res$dir.effect
+  colnames(splitDir)[3:5] = paste0('dir.', colnames(splitDir)[3:5])
+  splitInd = ns.res$ind.effect
+  colnames(splitInd)[3:5] = paste0('ind.', colnames(splitInd)[3:5])
+  splitCons = ns.res$cons.effect
+  colnames(splitCons)[3:5] = paste0('cons.', colnames(splitCons)[3:5])
+
+  #put all the results together in a sensible table
+  nsRes = left_join(splitDir, splitInd, by = c("t1", "t2")) %>%
+    left_join(splitCons, by = c("t1", "t2")) %>%
+    left_join(ns.res$p.value, by = c("t1", "t2"))
+  #calculate the inconsistency factor
+  #difference of log odds ratios (or rate ratio, hazard ratio etc)
+  nsRes$RoR = nsRes$dir.pe - nsRes$ind.pe
+  #calculate variance of inconsistency factor
+  #sum of Var(direct) + Var(indirect)
+  varIF = ((nsRes$dir.ci.u - nsRes$dir.ci.l) / 3.92) ^ 2 +
+    ((nsRes$ind.ci.u - nsRes$ind.ci.l) / 3.92) ^ 2
+  #Std Error of inconsistency factor
+  seIF = sqrt(varIF)
+  #CI for inconsistency factor
+  nsRes$RoR.lower.ci = nsRes$RoR - (1.96 * seIF)
+  nsRes$RoR.upper.ci = nsRes$RoR + (1.96 * seIF)
+
+  #rearrange column order
+  nsRes = select(nsRes, 1:11, 13:ncol(nsRes), 12)
+  nsRes$t1 = as.numeric(nsRes$t1)
+  nsRes$t2 = as.numeric(nsRes$t2)
+
+  #convert log values to linear scale if required
+  if(backtransf) {
+    nsRes[,3:14] = exp(nsRes[,3:14])
+  }
+  nsRes[,3:14] = round(nsRes[,3:14], 3)
+  #add treatment names
+  nsRes = left_join(nsRes, treatments, by = c('t1' = 'id')) %>%
+    left_join(treatments[,1:2], by = c('t2' = 'id'))
+
+  colnames(nsRes)[16:17] = c('Comparator', 'Intervention')
+  #Rearrange the column order and return the result
+  select(
+    nsRes, 2:1, 17:16, starts_with('dir'),
+    starts_with('ind'), starts_with('cons'),
+    contains('RoR'), p
+  )
 }
 
 #' Extract JAGS model code from a \code{mtc.results} object
