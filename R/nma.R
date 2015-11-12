@@ -246,10 +246,10 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
 
     #slice out results for treatments of interest and save these as separate
     #sheets for convenience
-    for (i in 1:length(toi)) {
-      n = names(toi)[i]
+    for (j in 1:length(toi)) {
+      n = names(toi)[j]
       tr = extractTOI(
-        pairwiseResults, toi = toi[i], treatments = treatmentID,
+        pairwiseResults, toi = toi[j], treatments = treatmentID,
         intervention = TRUE, reportOrder = report_order
       )
       #ALWAYS APPEND=TRUE OR YOU WILL OVERWRITE THE EXISTING RESULTS
@@ -748,7 +748,7 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
   if(backtransf) {
     nsRes[,3:14] = exp(nsRes[,3:14])
   }
-  nsRes[,3:14] = round(nsRes[,3:14], 3)
+  nsRes[,3:15] = round(nsRes[,3:15], 3)
   #add treatment names
   nsRes = left_join(nsRes, treatments, by = c('t1' = 'id')) %>%
     left_join(treatments[,1:2], by = c('t2' = 'id'))
