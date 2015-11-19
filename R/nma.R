@@ -297,6 +297,21 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         as.data.frame(nsRes), file = incFile, sheetName = 'Inconsistency', showNA = FALSE,
         row.names = FALSE, append = TRUE
       )
+
+      #plot the ratio of effect estimates to visualise inconsistency
+      df = as.data.frame(nsRes)
+      #create a column to use for the y-axis
+      df$comparison = paste0(df$Intervention, '\n', df$Comparator)
+      p = plotEstimates(df, yvar = 'comparison', xvar = 'RoR', lowLimit = 'RoR.lower.ci',
+                        hiLimit = 'RoR.upper.ci', xlabel = 'RoR')
+      f = paste0(outcome, '_', analysis_case, '_inconsistency.jpg')
+      incfig = file.path(incDir, f)
+      jpeg(
+        file = incfig, width = 22, height = 15, units = 'cm', res = 300,
+        quality = 100
+      )
+      suppressWarnings(print(p))
+      graphics.off()
     }
   }
 }
