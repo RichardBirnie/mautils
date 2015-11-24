@@ -844,6 +844,12 @@ saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
   #set file name and make autocorrelation plots
   f = file.path(directory, 'Autocorrelation.pdf')
   ggmcmc::ggmcmc(diagData, file = f, plot = 'autocorrelation', param_page = 3)
+  #set file name and make gelman plots
+  #this uses the plot from the coda package. The version in ggmcmc is not
+  #very useful
+  pdf(file=file.path(directory, 'BGR.pdf'), paper='a4')
+  coda::gelman.plot(coda::as.mcmc.list(mtc), ask=FALSE, lty='solid')
+  graphics.off()
 }
 
 #' Plot the results of a network meta-analysis
