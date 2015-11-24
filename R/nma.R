@@ -278,40 +278,45 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     #check for presence of inconsistency in the network using node splitting
     #node splitting function provided by gemtc
     if(check_inconsistency){
-      splitRes = gemtc::mtc.nodesplit(
-        network = network, comparisons = gemtc::mtc.nodesplit.comparisons(network),
-        n.chain = 3, likelihood = likelihood, link = link,
-        linearModel = EffectsModel[i], hy.prior = prior, om.scale = max_val,
-        n.adapt = burn_in, n.iter = iterations
-      )
+      splitComp = gemtc::mtc.nodesplit.comparisons(network)
+      if(nrow(splitComp) > 0) {
+        splitRes = gemtc::mtc.nodesplit(
+          network = network, comparisons = splitComp,
+          n.chain = 3, likelihood = likelihood, link = link,
+          linearModel = EffectsModel[i], hy.prior = prior, om.scale = max_val,
+          n.adapt = burn_in, n.iter = iterations
+        )
 
-      #format the node splitting results as a more useful data frame
-      #and save the output
-      nsRes = extractNodesplit(splitRes, treatments = treatmentID[,1:2], backtransf = back_calc)
-      incDir = file.path(MTCresDir, 'Inconsistency')
-      if(!dir.exists(incDir)){
-        dir.create(incDir, showWarnings = FALSE, recursive = TRUE)
+        #format the node splitting results as a more useful data frame
+        #and save the output
+        nsRes = extractNodesplit(splitRes, treatments = treatmentID[,1:2], backtransf = back_calc)
+        incDir = file.path(MTCresDir, 'Inconsistency')
+        if (!dir.exists(incDir)) {
+          dir.create(incDir, showWarnings = FALSE, recursive = TRUE)
+        }
+        incFile = file.path(incDir, paste0(outcome, '_', analysis_case, '_inconsistency.xlsx'))
+        rbutils::saveXLSX(
+          as.data.frame(nsRes), file = incFile, sheetName = 'Inconsistency', showNA = FALSE,
+          row.names = FALSE, append = TRUE
+        )
+
+        #plot the ratio of effect estimates to visualise inconsistency
+        df = as.data.frame(nsRes)
+        #create a column to use for the y-axis
+        df$comparison = paste0(df$Intervention, '\n', df$Comparator)
+        p = plotEstimates(
+          df, yvar = 'comparison', xvar = 'RoR', lowLimit = 'RoR.lower.ci',
+          hiLimit = 'RoR.upper.ci', xlabel = 'RoR'
+        )
+        f = paste0(outcome, '_', analysis_case, '_inconsistency.jpg')
+        incfig = file.path(incDir, f)
+        jpeg(
+          file = incfig, width = 22, height = 15, units = 'cm', res = 300,
+          quality = 100
+        )
+        suppressWarnings(print(p))
+        graphics.off()
       }
-      incFile = file.path(incDir, paste0(outcome, '_', analysis_case, '_inconsistency.xlsx'))
-      rbutils::saveXLSX(
-        as.data.frame(nsRes), file = incFile, sheetName = 'Inconsistency', showNA = FALSE,
-        row.names = FALSE, append = TRUE
-      )
-
-      #plot the ratio of effect estimates to visualise inconsistency
-      df = as.data.frame(nsRes)
-      #create a column to use for the y-axis
-      df$comparison = paste0(df$Intervention, '\n', df$Comparator)
-      p = plotEstimates(df, yvar = 'comparison', xvar = 'RoR', lowLimit = 'RoR.lower.ci',
-                        hiLimit = 'RoR.upper.ci', xlabel = 'RoR')
-      f = paste0(outcome, '_', analysis_case, '_inconsistency.jpg')
-      incfig = file.path(incDir, f)
-      jpeg(
-        file = incfig, width = 22, height = 15, units = 'cm', res = 300,
-        quality = 100
-      )
-      suppressWarnings(print(p))
-      graphics.off()
     }
   }
 }
@@ -918,3 +923,43 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
     panel.border = ggplot2::element_rect(colour = 'black')
   )
 }
+#close but not quite
+#
+# yvar = 'comparison'
+# xvar = 'effect'
+# lowLimit = 'lower'
+# hiLimit = 'upper'
+#
+# df = as.data.frame(nsRes)
+# #create a column to use for the y-axis
+# df$comparison = paste0(df$Intervention, '\n', df$Comparator)
+#
+# #re-arrange the data
+# dir = dplyr::select(df, 3:7, comparison)
+# colnames(dir)[3:5] = c('effect', 'lower', 'upper')
+# dir$method = 'direct'
+# ind = dplyr::select(df, 3:4, 8:10, comparison)
+# colnames(ind)[3:5] = c('effect', 'lower', 'upper')
+# ind$method = 'indirect'
+# cons = dplyr::select(df, 3:4, 11:13, comparison)
+# colnames(cons)[3:5] = c('effect', 'lower', 'upper')
+# cons$method = 'pooled'
+# pd = bind_rows(dir, ind, cons)
+#
+# pd = as.data.frame(pd)
+# pd[,'comparison'] = factor(pd[,'comparison'], levels = sort(unique(pd[,'comparison'])))
+#
+# dodge = ggplot2::position_dodge(width=1)
+# p = ggplot2::ggplot(pd) +
+#   ggplot2::geom_point(ggplot2::aes_string(x = yvar, y = xvar, colour = 'method'), size = 4,
+#                       position = dodge)
+#
+# p = p + ggplot2::geom_errorbar(
+#   ggplot2::aes_string(x = yvar, y = xvar, ymax = hiLimit, ymin = lowLimit, colour = 'method'),
+#   height = 0.25, position = dodge
+# )
+# p = p + ggplot2::scale_x_discrete(limits = rev(levels(pd[,yvar])), expand = c(0, 1))
+#
+# p = p + ggplot2::coord_flip()
+#
+#
