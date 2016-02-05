@@ -15,7 +15,7 @@
 #' @param file A character string specifying the directory where the results
 #'   will be saved. This function will create a subdirectory 'Results/MTC'
 #'   within this directory will be one or more further directories
-#'   'Results/MTC/FixedEffects' and 'Results/MTC/RamdomEffects' depending on
+#'   'Results/MTC/FixedEffects' and 'Results/MTC/RandomEffects' depending on
 #'   the values of \code{doFixed} and \code{doRandom}. These are only created
 #'   if they are required and do not exist already. Each results directory
 #'   will also contain a 'Figures' subdirectory.
@@ -28,8 +28,8 @@
 #'   If present this should be a column of integers indicating the order in
 #'   which the interventions should be presented in output tables and figures
 #' @param effect_measure A character string indicating what type of effect
-#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc. This is used as a
-#'   label in forest plots so keep it short.
+#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio', 'Risk Ratio' etc. This is
+#'   also used as a label in forest plots so keep it short.
 #' @param toi A named vector specifying the treatments of interest. The names
 #'   should be the treatment names. The values should be the ID number of the
 #'   treatments in the network.
@@ -129,7 +129,9 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     )
     #specify likelihood and link appropriate to the data type
     likelihood = 'binom'
-    link = 'logit'
+    #if effect measure is Risk Ratio use log link else default to logit link and
+    #use Odds Ratio
+    link = ifelse(effect_measure == 'Risk Ratio', 'log', 'logit')
   }
 
   #keep the input data to avoid overwriting
