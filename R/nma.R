@@ -132,6 +132,9 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     link = 'logit'
   }
 
+  #keep the input data to avoid overwriting
+  inputData = df
+
   #set which models are required
   EffectsModel = c('fixed', 'random')[c(doFixed, doRandom)]
 
@@ -155,7 +158,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       showNA = FALSE, row.names = FALSE, append = TRUE
     )
     rbutils::saveXLSX(
-      as.data.frame(df), file = MTCresultsFile, sheetName = 'Data',
+      as.data.frame(inputData), file = MTCresultsFile, sheetName = 'Data',
       showNA = FALSE, row.names = FALSE, append = TRUE
     )
 
