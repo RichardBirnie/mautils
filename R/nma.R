@@ -746,9 +746,9 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
   colnames(splitCons)[3:5] = paste0('cons.', colnames(splitCons)[3:5])
 
   #put all the results together in a sensible table
-  nsRes = left_join(splitDir, splitInd, by = c("t1", "t2")) %>%
-    left_join(splitCons, by = c("t1", "t2")) %>%
-    left_join(ns.res$p.value, by = c("t1", "t2"))
+  nsRes = dplyr::left_join(splitDir, splitInd, by = c("t1", "t2")) %>%
+    dplyr::left_join(splitCons, by = c("t1", "t2")) %>%
+    dplyr::left_join(ns.res$p.value, by = c("t1", "t2"))
   #calculate the inconsistency factor
   #difference of log odds ratios (or rate ratio, hazard ratio etc)
   nsRes$RoR = nsRes$dir.pe - nsRes$ind.pe
@@ -763,7 +763,7 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
   nsRes$RoR.upper.ci = nsRes$RoR + (1.96 * seIF)
 
   #rearrange column order
-  nsRes = select(nsRes, 1:11, 13:ncol(nsRes), 12)
+  nsRes = dplyr::select(nsRes, 1:11, 13:ncol(nsRes), 12)
   nsRes$t1 = as.numeric(nsRes$t1)
   nsRes$t2 = as.numeric(nsRes$t2)
 
@@ -773,12 +773,12 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
   }
   nsRes[,3:15] = round(nsRes[,3:15], 3)
   #add treatment names
-  nsRes = left_join(nsRes, treatments, by = c('t1' = 'id')) %>%
-    left_join(treatments[,1:2], by = c('t2' = 'id'))
+  nsRes = dplyr::left_join(nsRes, treatments, by = c('t1' = 'id')) %>%
+    dplyr::left_join(treatments[,1:2], by = c('t2' = 'id'))
 
   colnames(nsRes)[16:17] = c('Comparator', 'Intervention')
   #Rearrange the column order and return the result
-  select(
+  dplyr::select(
     nsRes, 2:1, 17:16, starts_with('dir'),
     starts_with('ind'), starts_with('cons'),
     contains('RoR'), p
@@ -850,6 +850,7 @@ saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
   #set file name and make gelman plots
   #this uses the plot from the coda package. The version in ggmcmc is not
   #very useful
+  message('Saving BGR')
   pdf(file=file.path(directory, 'BGR.pdf'), paper='a4')
   coda::gelman.plot(coda::as.mcmc.list(mtc), ask=FALSE, lty='solid')
   graphics.off()

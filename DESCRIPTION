@@ -4,14 +4,17 @@ Title: Utilities to facilitate an automated workflow for meta-analysis
 Version: 0.3
 Date: 2015-09-23
 Authors@R: person("Richard", "Birnie", email="richard.birnie@googlemail.com", role=c("aut", "cre"))
-Description: This package provides a collection of helper functions to support an automated workflow
-  for meta-analysis. This is mainly intended to be used in situations where analyses are required for
-  many different treatment comparisons in a single project or multiple different meta-analysis models
-  need to be fitted for the same data set. The functions provided are mainly simple wrappers around
-  functions from the meta package for direct meta-analysis or the gemtc package for network meta-analysis.
+Description: This package provides a collection of helper functions to support
+    an automated workflow for meta-analysis. This is mainly intended to be used in
+    situations where analyses are required for many different treatment comparisons
+    in a single project or multiple different meta-analysis models need to be fitted
+    for the same data set. The functions provided are mainly simple wrappers around
+    functions from the meta package for direct meta-analysis or the gemtc package
+    for network meta-analysis.
 License: GPL-3
 LazyData: TRUE
-Imports: dplyr (>= 0.4.3),
+Imports:
+    dplyr (>= 0.4.3),
     stringr (>= 1.0.0),
     readxl (>= 0.1.0),
     xlsx (>= 0.5.7),
@@ -20,5 +23,8 @@ Imports: dplyr (>= 0.4.3),
     scales (>= 0.3.0),
     igraph (>= 1.0.1),
     rbutils (>= 0.1),
+    gemtc (>= 0.7),
+    ggmcmc (>= 0.7.3)
+Depends:
     gemtc (>= 0.7)
-Depends: gemtc (>= 0.7)
+RoxygenNote: 5.0.1
