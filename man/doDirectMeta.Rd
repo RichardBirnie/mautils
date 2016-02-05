@@ -4,7 +4,7 @@
 \alias{doDirectMeta}
 \title{Perform multiple direct head to head meta-analyses from a single data frame}
 \usage{
-doDirectMeta(df, effectCode, dataType, backtransf = FALSE)
+doDirectMeta(df, effectCode, dataType, backtransf = FALSE, method = "MH")
 }
 \arguments{
 \item{df}{A data frame as returned by \code{formatDataToDirectMA}}
@@ -22,6 +22,10 @@ transformed. This is used to set the corresponding \code{backtransf}
 argument of the underlying functions from the \code{meta} package. If
 \code{backtransf=TRUE} then log odds ratios (or hazard ratios etc) will be
 converted to odds ratios on plots and print outs}
+
+\item{method}{A character string indicating which method is used for pooling
+studies. This argument is only applicable if data_type='binary. Must be one
+of 'MH' (Default, Mantel-Haenszel method), 'inverse' or 'Peto'}
 }
 \value{
 A data frame
@@ -39,6 +43,7 @@ This function provides a wrapper around the \code{metagen} or
   Bucher method
 }
 \seealso{
-\code{\link{formatDataToDirectMA}}, \code{\link[meta]{metagen}}, \code{\link[meta]{metabin}}
+\code{\link{formatDataToDirectMA}}, \code{\link[meta]{metagen}},
+  \code{\link[meta]{metabin}}
 }
 

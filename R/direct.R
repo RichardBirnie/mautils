@@ -48,6 +48,9 @@
 #'   and/or random effects results should be shown on the forest plot. By
 #'   default both are TRUE and both results are shown. Set the appropriate
 #'   argument to FALSE if you want to exclude that result from the plot.
+#' @param method A character string indicating which method is used for pooling
+#'   studies. This argument is only applicable if data_type='binary'. Must be one
+#'   of 'MH' (Default, Mantel-Haenszel method), 'inverse' or 'Peto'
 #'
 #' @details This function runs direct head to head meta-analysis for all
 #'   possible pairwise comparisons in a dataset. The objective is to provide a
@@ -76,7 +79,8 @@
 #'   \code{\link{drawForest}}, \code{\link{extractDirectRes}}
 runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome, effect_measure,
                      back_calc = FALSE, forest_plot = TRUE,
-                     show_fixed = TRUE, show_random = TRUE) {
+                     show_fixed = TRUE, show_random = TRUE,
+                     method='MH') {
 
   message('Run direct meta-analysis')
   #set up folders for the results and figures. No need to edit this
@@ -95,7 +99,7 @@ runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome,
   #run the meta-analysis
   directRes = doDirectMeta(
     df = reDataDirect, dataType = data_type, effectCode = effect_code,
-    backtransf = back_calc
+    backtransf = back_calc, method = method
   )
 
   #draw the forest plots if requested
@@ -268,6 +272,9 @@ formatDataToDirectMA = function(input.df, dataType) {
 #'   argument of the underlying functions from the \code{meta} package. If
 #'   \code{backtransf=TRUE} then log odds ratios (or hazard ratios etc) will be
 #'   converted to odds ratios on plots and print outs
+#' @param method A character string indicating which method is used for pooling
+#'   studies. This argument is only applicable if data_type='binary'. Must be one
+#'   of 'MH' (Default, Mantel-Haenszel method), 'inverse' or 'Peto'
 #' @details This function provides a wrapper around the \code{metagen} or
 #'   \code{metabin} functions from the \code{meta} package to one or more
 #'   analyses to be carried out from a single data frame. This is most useful
@@ -278,8 +285,9 @@ formatDataToDirectMA = function(input.df, dataType) {
 #'
 #' @return A data frame
 #'
-#' @seealso \code{\link{formatDataToDirectMA}}, \code{\link[meta]{metagen}}, \code{\link[meta]{metabin}}
-doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE) {
+#' @seealso \code{\link{formatDataToDirectMA}}, \code{\link[meta]{metagen}},
+#'   \code{\link[meta]{metabin}}
+doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method='MH') {
   #create a list object to store the results
   resList = list()
 
@@ -339,7 +347,7 @@ doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE) {
         event.c = comp$NumberEventsComparator, n.c = comp$NumberAnalysedComparator,
         sm = effectCode, backtransf = backtransf, studlab = comp$StudyName,
         label.e = comp$TreatmentName, label.c = comp$ComparatorName,
-        method = ifelse(nrow(comp) > 1, "MH", "Inverse")
+        method = ifelse(nrow(comp) > 1, method, "Inverse")
       )
     }
     #add the treatment codes to the results object. These will be needed later

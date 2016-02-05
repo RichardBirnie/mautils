@@ -7,7 +7,7 @@ in a dataset}
 \usage{
 runDirect(df, treatments = NULL, file, data_type, effect_code, outcome,
   effect_measure, back_calc = FALSE, forest_plot = TRUE,
-  show_fixed = TRUE, show_random = TRUE)
+  show_fixed = TRUE, show_random = TRUE, method = "MH")
 }
 \arguments{
 \item{df}{A \code{data.frame} This should be in one of two formats. Arm level
@@ -66,6 +66,10 @@ produced for each pairwise comparison.}
 and/or random effects results should be shown on the forest plot. By
 default both are TRUE and both results are shown. Set the appropriate
 argument to FALSE if you want to exclude that result from the plot.}
+
+\item{method}{A character string indicating which method is used for pooling
+studies. This argument is only applicable if data_type='binary. Must be one
+of 'MH' (Default, Mantel-Haenszel method), 'inverse' or 'Peto'}
 }
 \value{
 A data frame containing the results of the meta-analysis
