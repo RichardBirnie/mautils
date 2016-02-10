@@ -29,13 +29,13 @@ adjust for the correlation in multiarm studies.}
 \item{file}{A character string specifying the directory where the results
 will be saved. This function will create a subdirectory 'Results/MTC'
 within this directory will be one or more further directories
-'Results/MTC/FixedEffects' and 'Results/MTC/RamdomEffects' depending on
+'Results/MTC/FixedEffects' and 'Results/MTC/RandomEffects' depending on
 the values of \code{doFixed} and \code{doRandom}. These are only created
 if they are required and do not exist already. Each results directory
 will also contain a 'Figures' subdirectory.}
 
 \item{data_type}{A character string specifying which type of data has been
-provided. Currently only 'treatment difference' or 'binary' are supported}
+provided. Must be one of 'treatment difference', 'binary' or 'continuous'.}
 
 \item{treatmentID}{A data frame with columns 'description' defining the
 treatment names and 'id' defining the treatment ID numbers. This is used
@@ -45,8 +45,8 @@ If present this should be a column of integers indicating the order in
 which the interventions should be presented in output tables and figures}
 
 \item{effect_measure}{A character string indicating what type of effect
-measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc. This is used as a
-label in forest plots so keep it short.}
+measure is used, e.g. 'Rate Ratio', 'Odds Ratio', 'Risk Ratio' etc. This is
+also used as a label in forest plots so keep it short.}
 
 \item{toi}{A named vector specifying the treatments of interest. The names
 should be the treatment names. The values should be the ID number of the

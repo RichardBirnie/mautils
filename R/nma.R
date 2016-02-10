@@ -20,7 +20,7 @@
 #'   if they are required and do not exist already. Each results directory
 #'   will also contain a 'Figures' subdirectory.
 #' @param data_type A character string specifying which type of data has been
-#'   provided. Currently only 'treatment difference' or 'binary' are supported
+#'   provided. Must be one of 'treatment difference', 'binary' or 'continuous'.
 #' @param treatmentID A data frame with columns 'description' defining the
 #'   treatment names and 'id' defining the treatment ID numbers. This is used
 #'   to set the \code{treatments} argument of the \code{mtc.network} function
@@ -133,6 +133,14 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     #use Odds Ratio
     link = ifelse(effect_measure == 'Risk Ratio', 'log', 'logit')
   }
+  if (data_type == 'continuous') {
+    network = gemtc::mtc.network(
+      data.ab = df, treatments = treatmentID[, 1:2], description = analysis_set
+    )
+    #specify likelihood and link appropriate to the data type
+    likelihood = 'normal'
+    link = 'identity'
+  }
 
   #keep the input data to avoid overwriting
   inputData = df
@@ -197,7 +205,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     #set up a file to save the model. If necessary create the directory
     message('Save model file')
     m = paste0(
-      mtcResults$model$linearModel, '_effects_', mtcResults$model$type,'_',
+      mtcResults$model$linearModel, '_effects_', mtcResults$model$type,
       '_model', '.txt'
     )
     modelFile = file.path(MTCresDir, m)
@@ -236,6 +244,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       #make a plot of all treatments vs placebo
       p = plotEstimates(
         df = placebo, yvar = 'nameB', xlabel = effect_measure,
+        noEffectLine = ifelse(effect_measure == 'Mean Difference', 0, 1),
         reportOrder = report_order
       )
       #save the plot
@@ -266,6 +275,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       #make a plot for each treatment of interest vs all other treatments
       p = plotEstimates(
         df = tr, yvar = 'nameA', xlabel = effect_measure,
+        noEffectLine = ifelse(effect_measure == 'Mean Difference', 0, 1),
         reportOrder = report_order
       )
       #save the plot
@@ -310,8 +320,9 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         #create a column to use for the y-axis
         df$comparison = paste0(df$Intervention, '\n', df$Comparator)
         p = plotEstimates(
-          df, yvar = 'comparison', xvar = 'RoR', lowLimit = 'RoR.lower.ci',
-          hiLimit = 'RoR.upper.ci', xlabel = 'RoR'
+          df, yvar = 'comparison', xvar = 'IF', lowLimit = 'IF.lower.ci',
+          hiLimit = 'IF.upper.ci', xlabel = 'IF',
+          noEffectLine = ifelse(effect_measure == 'Mean Difference', 0, 1)
         )
         f = paste0(outcome, '_', analysis_case, '_inconsistency.jpg')
         incfig = file.path(incDir, f)
@@ -753,7 +764,8 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
     dplyr::left_join(ns.res$p.value, by = c("t1", "t2"))
   #calculate the inconsistency factor
   #difference of log odds ratios (or rate ratio, hazard ratio etc)
-  nsRes$RoR = nsRes$dir.pe - nsRes$ind.pe
+  #can also be difference of mean differences for continuous
+  nsRes$IF = nsRes$dir.pe - nsRes$ind.pe
   #calculate variance of inconsistency factor
   #sum of Var(direct) + Var(indirect)
   varIF = ((nsRes$dir.ci.u - nsRes$dir.ci.l) / 3.92) ^ 2 +
@@ -761,8 +773,8 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
   #Std Error of inconsistency factor
   seIF = sqrt(varIF)
   #CI for inconsistency factor
-  nsRes$RoR.lower.ci = nsRes$RoR - (1.96 * seIF)
-  nsRes$RoR.upper.ci = nsRes$RoR + (1.96 * seIF)
+  nsRes$IF.lower.ci = nsRes$IF - (1.96 * seIF)
+  nsRes$IF.upper.ci = nsRes$IF + (1.96 * seIF)
 
   #rearrange column order
   nsRes = dplyr::select(nsRes, 1:11, 13:ncol(nsRes), 12)
@@ -783,7 +795,7 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
   dplyr::select(
     nsRes, 2:1, 17:16, starts_with('dir'),
     starts_with('ind'), starts_with('cons'),
-    contains('RoR'), p
+    contains('IF'), p
   )
 }
 

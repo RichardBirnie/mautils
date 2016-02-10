@@ -24,7 +24,7 @@ argument of the underlying functions from the \code{meta} package. If
 converted to odds ratios on plots and print outs}
 
 \item{method}{A character string indicating which method is used for pooling
-studies. This argument is only applicable if data_type='binary. Must be one
+studies. This argument is only applicable if data_type='binary'. Must be one
 of 'MH' (Default, Mantel-Haenszel method), 'inverse' or 'Peto'}
 }
 \value{

@@ -68,7 +68,7 @@ default both are TRUE and both results are shown. Set the appropriate
 argument to FALSE if you want to exclude that result from the plot.}
 
 \item{method}{A character string indicating which method is used for pooling
-studies. This argument is only applicable if data_type='binary. Must be one
+studies. This argument is only applicable if data_type='binary'. Must be one
 of 'MH' (Default, Mantel-Haenszel method), 'inverse' or 'Peto'}
 }
 \value{
