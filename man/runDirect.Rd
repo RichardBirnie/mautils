@@ -38,7 +38,7 @@ will be saved. This function will create two new subdirectories
 are only created if they do not already exist}
 
 \item{data_type}{A character string specifying which type of data has been
-provided. Currently only 'treatment difference' or 'binary' are supported}
+provided. Must be one of 'treatment difference', 'binary' or 'continuous'}
 
 \item{effect_code}{A character string indicating the underlying effect
 estimate. This is used to set the \code{sm} argument of the underlying

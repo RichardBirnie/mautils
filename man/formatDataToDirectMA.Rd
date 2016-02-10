@@ -22,7 +22,7 @@ error of the baseline arm. This determines the covariance which is used to
 adjust for the correlation in multiarm studies.}
 
 \item{dataType}{A character string specifying which type of data has been
-provided. Currently only 'treatment difference' or 'binary are supported}
+provided. Must be one of 'treatment difference', 'binary' or 'continuous'}
 }
 \value{
 A data frame

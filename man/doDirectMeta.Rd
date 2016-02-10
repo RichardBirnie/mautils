@@ -15,7 +15,7 @@ analysis functions from the \code{meta} package. Acceptable values are
 'RD', 'RR', 'OR', 'HR', 'ASD', 'MD', 'SMD'}
 
 \item{dataType}{A character string specifying which type of data has been
-provided. Currently only 'treatment difference' or 'binary are supported}
+provided. Must be one of 'treatment difference', 'binary' or 'continuous'}
 
 \item{backtransf}{A logical indicating whether results should be back
 transformed. This is used to set the corresponding \code{backtransf}

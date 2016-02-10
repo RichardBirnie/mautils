@@ -26,7 +26,7 @@
 #'   'Results/Direct' and 'Results/Direct/Figures' to store the output. These
 #'   are only created if they do not already exist
 #' @param data_type A character string specifying which type of data has been
-#'   provided. Currently only 'treatment difference' or 'binary' are supported
+#'   provided. Must be one of 'treatment difference', 'binary' or 'continuous'
 #' @param effect_code A character string indicating the underlying effect
 #'   estimate. This is used to set the \code{sm} argument of the underlying
 #'   analysis functions from the \code{meta} package. Acceptable values are
@@ -143,8 +143,7 @@ runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome,
     res = extractDirectRes(
       metaRes = res, effect = effect_measure, backtransf = back_calc,
       intervention = res$label.e[1], comparator = res$label.c[1],
-      interventionCode = res$e.code, comparatorCode =
-        res$c.code
+      interventionCode = res$e.code, comparatorCode = res$c.code
     )
     if (i == 1) {
       dirMA = res
@@ -172,7 +171,7 @@ runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome,
 #'   error of the baseline arm. This determines the covariance which is used to
 #'   adjust for the correlation in multiarm studies.
 #' @param dataType A character string specifying which type of data has been
-#'   provided. Currently only 'treatment difference' or 'binary are supported
+#'   provided. Must be one of 'treatment difference', 'binary' or 'continuous'
 #'
 #' @return A data frame
 #'
@@ -286,7 +285,7 @@ formatDataToDirectMA = function(input.df, dataType) {
 #'   analysis functions from the \code{meta} package. Acceptable values are
 #'   'RD', 'RR', 'OR', 'HR', 'ASD', 'MD', 'SMD'
 #' @param dataType A character string specifying which type of data has been
-#'   provided. Currently only 'treatment difference' or 'binary are supported
+#'   provided. Must be one of 'treatment difference', 'binary' or 'continuous'
 #' @param backtransf A logical indicating whether results should be back
 #'   transformed. This is used to set the corresponding \code{backtransf}
 #'   argument of the underlying functions from the \code{meta} package. If
@@ -307,22 +306,25 @@ formatDataToDirectMA = function(input.df, dataType) {
 #'
 #' @seealso \code{\link{formatDataToDirectMA}}, \code{\link[meta]{metagen}},
 #'   \code{\link[meta]{metabin}}
-doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method='MH') {
+doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method =
+                          'MH') {
   #create a list object to store the results
   resList = list()
 
   #identify the set of treatment comparisons present in the data
   com = dplyr::distinct(df[,3:4])
-  comparisons = data.frame(comparator=NA, treatment=NA)
+  comparisons = data.frame(comparator = NA, treatment = NA)
   for (i in 1:nrow(com)) {
     if (i == 1) {
       comparisons = com[i,]
     } else {
       #check if we have already have this comparison either way around
-      f_test = dplyr::filter(comparisons, comparator == com$comparator[i],
-                    treatment == comparisons$treatment[i]) %>% nrow()
+      f_test = dplyr::filter(
+        comparisons, comparator == com$comparator[i],
+        treatment == comparisons$treatment[i]
+      ) %>% nrow()
       r_test = dplyr::filter(comparisons, comparator == com$treatment[i],
-                    treatment == com$comparator[i]) %>% nrow()
+                             treatment == com$comparator[i]) %>% nrow()
       #Only add this contrast to the comparison set if it is not already
       #included in either orientation
       if (f_test == 0 & r_test == 0) {
@@ -334,16 +336,16 @@ doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method='MH
   for (i in 1:nrow(comparisons)) {
     #get data for the first comparison
     comp = dplyr::filter(df, comparator == comparisons$comparator[i],
-                  treatment == comparisons$treatment[i])
+                         treatment == comparisons$treatment[i])
     #check for studies that report the inverse comparison
     inv_comp = dplyr::filter(df, comparator == comparisons$treatment[i],
-                         treatment == comparisons$comparator[i])
+                             treatment == comparisons$comparator[i])
 
     #run the analysis for different data types
     if (dataType == 'treatment difference') {
       #if there are any studies reporting the inverse of the required comparison
       #then flip these to give the preferred comparison e.g. flip B vs A to give A vs B
-      if(nrow(inv_comp) >0){
+      if (nrow(inv_comp) > 0) {
         inv_comp$diff = -inv_comp$diff
         inv_comp[, c('comparator', 'treatment')] = inv_comp[, c('treatment', 'comparator')]
         inv_comp[, c('NumberAnalysedComparator', 'NumberAnalysedTreatment')] = inv_comp[, c('NumberAnalysedTreatment', 'NumberAnalysedComparator')]
@@ -368,6 +370,15 @@ doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method='MH
         sm = effectCode, backtransf = backtransf, studlab = comp$StudyName,
         label.e = comp$TreatmentName, label.c = comp$ComparatorName,
         method = ifelse(nrow(comp) > 1, method, "Inverse")
+      )
+    }
+    if (dataType == 'continuous') {
+      #Analysis of continuous data provided as Mean and SD
+      directRes = meta::metacont(
+        n.e = comp$sampleSizeTreatment, mean.e = comp$MeanTreatment, sd.e = comp$SDTreatment,
+        n.c = comp$sampleSizeComparator, mean.c = comp$MeanComparator, sd.c = comp$SDComparator,
+        sm = effectCode, studlab = comp$StudyName, label.e = comp$TreatmentName,
+        label.c = comp$ComparatorName
       )
     }
     #add the treatment codes to the results object. These will be needed later
@@ -491,15 +502,24 @@ extractDirectRes = function(metaRes, effect, intervention = 'Int',
   #re-arrange the output columns into a more report friendly order
   #for future versions consider adapting this to use dplyr and select by
   #name instead of position.
-  df = df[,c(5, 1, 3, 14:16, 22:23, 6, 2, 4, 7:13, 17:21)]
+  if (effect != 'Mean Difference') {
+    df = df[,c(5, 1, 3, 14:16, 22:23, 6, 2, 4, 7:13, 17:21)]
+  } else {
+    df = dplyr::select(
+      df, Effect, Intervention, Comparator, TE, lower, upper,
+      n.studies, studies, Model, InterventionCode, ComparatorCode,
+      seTE, z, p, level, Tau.sq, method.tau,
+      I.sq.TE, I.sq.lower, I.sq.upper
+    )
+  }
 
 }
 
 #' Draw a forest plot
 #'
-#' @param meta an object of class c("metagen", "meta") or c("metabin", "meta")
-#'   as returned by the functions \code{metagen} or \code{metabin} in the
-#'   package meta
+#' @param meta an object of class c("metagen", "meta"), c("metabin", "meta") or
+#'   c("metabin", "meta") as returned by the functions \code{metagen},
+#'   \code{metabin} or \code{metacont} in the package meta
 #' @param showFixed,showRandom Logical indicating whether fixed effect and/or
 #'   random effects results should be shown on the forest plot. By default both
 #'   are shown set the appropriate argument to FALSE if you want to exclude that
@@ -528,9 +548,19 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
     meta$lower, meta$upper, meta$lower.fixed, meta$upper.fixed,
     meta$lower.random, meta$upper.random
   )
-  limits = range(exp(limits))
-  xlower = ifelse(limits[1] < 0.2, round(limits[1], 1), 0.2)
-  xupper = ifelse(limits[2] > 5, round(limits[2]), 5)
+  if (!is(meta, 'metacont')) {
+    #if data are not continuous set limits appropriate for
+    #ratio measures
+    limits = range(exp(limits))
+    xlower = ifelse(limits[1] < 0.2, round(limits[1], 1), 0.2)
+    xupper = ifelse(limits[2] > 5, round(limits[2]), 5)
+  } else {
+    #if data are continuous then set limits accordingly
+    limits = range(limits)
+    xlower = ifelse(limits[1] < -2, round(limits[1]), -2)
+    xupper = ifelse(limits[2] > 2, round(limits[2]), 2)
+  }
+
   xlimits = c(xlower, xupper)
 
   #check and set sensible treatment names if available
@@ -549,6 +579,6 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
   meta::forest(
     meta, hetlab = NULL, text.I2 = 'I-sq', text.tau2 = 'tau-sq', xlim = xlimits,
     comb.fixed = showFixed, comb.random = showRandom, lty.fixed = 0,
-    lty.random = 0, just.studlab='right', fontsize=10, ...
+    lty.random = 0, just.studlab = 'right', fontsize = 10, ...
   )
 }

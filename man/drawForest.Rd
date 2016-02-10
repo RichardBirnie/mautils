@@ -7,9 +7,9 @@
 drawForest(meta, showFixed = TRUE, showRandom = TRUE, ...)
 }
 \arguments{
-\item{meta}{an object of class c("metagen", "meta") or c("metabin", "meta")
-as returned by the functions \code{metagen} or \code{metabin} in the
-package meta}
+\item{meta}{an object of class c("metagen", "meta"), c("metabin", "meta") or
+c("metabin", "meta") as returned by the functions \code{metagen},
+\code{metabin} or \code{metacont} in the package meta}
 
 \item{showFixed, showRandom}{Logical indicating whether fixed effect and/or
 random effects results should be shown on the forest plot. By default both
