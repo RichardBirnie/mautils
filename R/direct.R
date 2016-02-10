@@ -215,12 +215,6 @@ formatDataToDirectMA = function(input.df, dataType) {
           df[i,'TreatmentName'] = as.character(comp$TreatmentName[2])
         }
       }
-
-      if (s == 1) {
-        directData = df
-      } else {
-        directData = dplyr::bind_rows(directData, df)
-      }
     }
 
     #rearrange binary data
@@ -236,7 +230,7 @@ formatDataToDirectMA = function(input.df, dataType) {
       #loop through the set of comparisons and rearrange the data
       for (i in 1:ncol(comparisons)) {
         comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
-        df[i, 'StudyName'] = as.character(comp$StudyName[1])
+        df[i,'StudyName'] = as.character(comp$StudyName[1])
         df[i,'study'] = as.integer(s)
         df[i,'treatment'] = as.integer(comp$treatment[2])
         df[i,'comparator'] = as.integer(comp$treatment[1])
@@ -247,12 +241,38 @@ formatDataToDirectMA = function(input.df, dataType) {
         df[i,'ComparatorName'] = as.character(comp$TreatmentName[1])
         df[i,'TreatmentName'] = as.character(comp$TreatmentName[2])
       }
+    }
 
-      if (s == 1) {
-        directData = df
-      } else {
-        directData = dplyr::bind_rows(directData, df)
+    if (dataType == 'continuous') {
+      #set up a temporary data frame
+      df = dplyr::data_frame(
+        StudyName = NA, study = NA, comparator = NA, treatment = NA,
+        MeanComparator = NA, SDComparator = NA, sampleSizeComparator = NA,
+        MeanTreatment = NA, SDTreatment = NA, sampleSizeTreatment = NA,
+        ComparatorName = NA, TreatmentName = NA
+      )
+
+      #loop through the set of comparisons and rearrange the data
+      for (i in 1:ncol(comparisons)) {
+        comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
+        df[i,'StudyName'] = as.character(comp$StudyName[1])
+        df[i,'study'] = as.integer(s)
+        df[i,'treatment'] = as.integer(comp$treatment[2])
+        df[i,'comparator'] = as.integer(comp$treatment[1])
+        df[i,'MeanComparator'] = as.numeric(comp$mean[1])
+        df[i,'SDComparator'] = as.numeric(comp$std.dev[1])
+        df[i, 'sampleSizeComparator'] = as.integer(comp$sampleSize[1])
+        df[i,'MeanTreatment'] = as.numeric(comp$mean[2])
+        df[i,'SDTreatment'] = as.numeric(comp$std.dev[2])
+        df[i, 'sampleSizeTreatment'] = as.integer(comp$sampleSize[2])
+        df[i,'ComparatorName'] = as.character(comp$TreatmentName[1])
+        df[i,'TreatmentName'] = as.character(comp$TreatmentName[2])
       }
+    }
+    if (s == 1) {
+      directData = df
+    } else {
+      directData = dplyr::bind_rows(directData, df)
     }
   }
   return(directData)
