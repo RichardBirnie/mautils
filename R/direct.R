@@ -517,7 +517,7 @@ extractDirectRes = function(metaRes, effect, intervention = 'Int',
 
 #' Draw a forest plot
 #'
-#' @param meta an object of class c("metagen", "meta"), c("metabin", "meta") or
+#' @param meta an object of class c("metagen", "meta"), c("metacont", "meta") or
 #'   c("metabin", "meta") as returned by the functions \code{metagen},
 #'   \code{metabin} or \code{metacont} in the package meta
 #' @param showFixed,showRandom Logical indicating whether fixed effect and/or
