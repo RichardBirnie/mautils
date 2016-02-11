@@ -4,9 +4,8 @@
 \alias{bucher}
 \title{Simple indirect (Bucher) meta-analysis}
 \usage{
-bucher(abTE, se.abTE, cbTE, se.cbTE, effect, model, effect_measure,
-  intervention, comparator, common, backtransf = FALSE, ab.studies,
-  cb.studies)
+bucher(abTE, se.abTE, cbTE, se.cbTE, effect, model, continuous, intervention,
+  comparator, common, backtransf = FALSE, ab.studies, cb.studies)
 }
 \arguments{
 \item{abTE}{Numeric. The treatment effect for a vs b. e.g. log OR, log HR,
@@ -27,9 +26,6 @@ Ratio' or 'log Odds Ratio'}
 \item{model}{Character string indicating whether abTE and cbTE come from a
 fixed effect model or a random effect model}
 
-\item{effect_measure}{A character string indicating what type of effect
-measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
-
 \item{intervention}{Character string. Name of the intervention treatment}
 
 \item{comparator}{Character string. Name of the comparator treatment}
@@ -42,6 +38,9 @@ exponentiated or not. If abTE and cbTE are on the log scale (e.g. log
 hazard ratio) set this to TRUE to return the exponentiated results (e.g.
 hazard ratio). If TRUE this will return both the log estimates and the
 exponentiated estimates}
+
+\item{effect_measure}{A character string indicating what type of effect
+measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
 }
 \description{
 Simple indirect (Bucher) meta-analysis

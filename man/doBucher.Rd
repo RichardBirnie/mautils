@@ -4,7 +4,7 @@
 \alias{doBucher}
 \title{Perform all possible indirect comparisons for a given data set}
 \usage{
-doBucher(comparisons, direct, effectType = "all", effect_measure,
+doBucher(comparisons, direct, effectType = "all", continuous,
   backtransf = FALSE)
 }
 \arguments{

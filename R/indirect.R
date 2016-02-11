@@ -59,7 +59,7 @@
 #'   provides a detailed description of the columns in the output
 #'
 #' @seealso \code{\link{doBucher}}, \code{\link{runDirect}}
-runIndirect = function(df, data_type, direct_results, effect_measure=NA,
+runIndirect = function(df, data_type, direct_results, continuous=FALSE,
                        effect_type = 'all', back_calc = FALSE,
                        order_treatments = NA) {
 
@@ -70,7 +70,7 @@ runIndirect = function(df, data_type, direct_results, effect_measure=NA,
 
   indMA = doBucher(
     comparisons = reDataDirect[,1:4], direct = direct_results,
-    effectType = effect_type, effect_measure = effect_measure,
+    effectType = effect_type, continuous = continuous,
     backtransf = back_calc
   )
   if(is.data.frame(order_treatments)){
@@ -202,7 +202,7 @@ runIndirect = function(df, data_type, direct_results, effect_measure=NA,
 #'
 #'   @seealso \code{\link{doBucher}}
 
-bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, effect_measure,
+bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, continuous,
                   intervention, comparator, common, backtransf = FALSE,
                   ab.studies, cb.studies) {
 
@@ -210,7 +210,7 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, effect_measure,
   se.acTE = sqrt(se.abTE ^ 2 + se.cbTE ^ 2) #standard error - sqrt(sum of the two variances)
   lower = acTE - (1.96 * se.acTE) #calculate confidence intervals
   upper = acTE + (1.96 * se.acTE)
-  if(effect_measure != 'Mean Difference') {
+  if(!continuous) {
     #if the effect measure is not mean difference then results will be on a log scale
     #set column names accordingly
     df = data.frame(
@@ -304,7 +304,7 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, effect_measure,
 #'   \code{\link{extractDirectRes}}
 
 doBucher = function(comparisons, direct, effectType = 'all',
-                    effect_measure, backtransf = FALSE) {
+                    continuous, backtransf = FALSE) {
 
   #get all the pairs of comparisons
   connections = dplyr::select(comparisons, from = treatment, to = comparator)
@@ -353,26 +353,29 @@ doBucher = function(comparisons, direct, effectType = 'all',
         #reverse the treatment codes
         indComp[ix, c('InterventionCode', 'ComparatorCode')] = indComp[ix, c('ComparatorCode', 'InterventionCode')]
         indComp[ix, c('Intervention', 'Comparator')] = indComp[ix, c('Comparator', 'Intervention')]
-        if(effect_measure=='Mean Difference') {
+        if(continuous) {
           #invert treatment effect for continuous data
           #linear scale
           indComp$TE[ix] =-indComp$TE[ix]
-          abTE = indComp$TE[indComp$InterventionCode == triplet$from]
-          se.abTE = indComp$seTE[indComp$InterventionCode == triplet$from]
-          cbTE = indComp$TE[indComp$InterventionCode == triplet$to]
-          se.cbTE = indComp$seTE[indComp$InterventionCode == triplet$to]
         } else {
           #invert treatment effect for other effect measures
           #log scale
           indComp$log.TE[ix] =-indComp$log.TE[ix]
-          abTE = indComp$log.TE[indComp$InterventionCode == triplet$from]
-          se.abTE = indComp$seTE.log[indComp$InterventionCode == triplet$from]
-          cbTE = indComp$log.TE[indComp$InterventionCode == triplet$to]
-          se.cbTE = indComp$seTE.log[indComp$InterventionCode == triplet$to]
         }
       }
 
       #run the comparison
+      if(continuous) {
+        abTE = indComp$TE[indComp$InterventionCode == triplet$from]
+        se.abTE = indComp$seTE[indComp$InterventionCode == triplet$from]
+        cbTE = indComp$TE[indComp$InterventionCode == triplet$to]
+        se.cbTE = indComp$seTE[indComp$InterventionCode == triplet$to]
+      } else {
+        abTE = indComp$log.TE[indComp$InterventionCode == triplet$from]
+        se.abTE = indComp$seTE.log[indComp$InterventionCode == triplet$from]
+        cbTE = indComp$log.TE[indComp$InterventionCode == triplet$to]
+        se.cbTE = indComp$seTE.log[indComp$InterventionCode == triplet$to]
+      }
       e = indComp$Effect[1]
       int = indComp$Intervention[indComp$InterventionCode == triplet$from]
       com = indComp$Intervention[indComp$InterventionCode == triplet$to]
@@ -385,7 +388,7 @@ doBucher = function(comparisons, direct, effectType = 'all',
         comparator = com, common = common,
         ab.studies = indComp$studies[1],
         cb.studies = indComp$studies[2],
-        effect_measure = effect_measure
+        continuous = continuous
       )
 
       #collect FE and RE results
@@ -409,7 +412,7 @@ doBucher = function(comparisons, direct, effectType = 'all',
   #rearrange the columns into a more report friendly format
   #depending on the effect measure a different set of columns
   #will be present
-  if(effect_measure != 'Mean Difference' & backtransf == TRUE) {
+  if(!continuous & backtransf == TRUE) {
     #if the effect measure is not a mean difference and backtransf is TRUE
     #then the results table will include the log effect estimates
     df = dplyr::select(

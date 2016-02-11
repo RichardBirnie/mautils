@@ -5,7 +5,7 @@
 \title{Run simple indirect meta-analysis for all possible pairwise comparisons
 in a dataset}
 \usage{
-runIndirect(df, data_type, direct_results, effect_measure,
+runIndirect(df, data_type, direct_results, continuous = FALSE,
   effect_type = "all", back_calc = FALSE, order_treatments = NA)
 }
 \arguments{
@@ -30,9 +30,6 @@ provided. Currently only 'treatment difference' or 'binary' are supported}
 meta-analysis as returned by \code{runDirect}. These results are required
 to provide the inputs for the indirect comparisons}
 
-\item{effect_measure}{A character string indicating what type of effect
-measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
-
 \item{effect_type}{A character string indicating what kind of analysis is
 required. Set to 'Fixed' for fixed effect, 'Random' for random effects or
 'all' to get both (Default).}
@@ -52,6 +49,9 @@ headers are specific and case sensitive. The description column should
 contain the names of the treatments \emph{exactly} as they are specified
 in the data set. The id column should contain the numbered order of
 treatments required.}
+
+\item{effect_measure}{A character string indicating what type of effect
+measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
 }
 \value{
 A data frame containing the results of all possible indirect
