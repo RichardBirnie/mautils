@@ -548,7 +548,7 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
     meta$lower, meta$upper, meta$lower.fixed, meta$upper.fixed,
     meta$lower.random, meta$upper.random
   )
-  if (!is(meta, 'metacont')) {
+  if (!'MD' %in% meta$sm) {
     #if data are not continuous set limits appropriate for
     #ratio measures
     limits = range(exp(limits))
