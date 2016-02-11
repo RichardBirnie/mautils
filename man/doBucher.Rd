@@ -4,7 +4,8 @@
 \alias{doBucher}
 \title{Perform all possible indirect comparisons for a given data set}
 \usage{
-doBucher(comparisons, direct, effectType = "all", backtransf = FALSE)
+doBucher(comparisons, direct, effectType = "all", effect_measure,
+  backtransf = FALSE)
 }
 \arguments{
 \item{comparisons}{A data frame with four columns: StudyName, study,
@@ -23,6 +24,9 @@ used. This data frame can be created by using \code{doDirectMeta} and
 required. Default is 'all' which will return both fixed effect and random
 effect results. Alternatives are 'Fixed' or 'Random' (Case sensitive) if
 only one set of results is required}
+
+\item{effect_measure}{A character string indicating what type of effect
+measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
 }
 \description{
 Perform all possible indirect comparisons for a given data set

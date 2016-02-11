@@ -4,8 +4,9 @@
 \alias{bucher}
 \title{Simple indirect (Bucher) meta-analysis}
 \usage{
-bucher(abTE, se.abTE, cbTE, se.cbTE, effect, model, intervention, comparator,
-  common, backtransf = FALSE, ab.studies, cb.studies)
+bucher(abTE, se.abTE, cbTE, se.cbTE, effect, model, effect_measure,
+  intervention, comparator, common, backtransf = FALSE, ab.studies,
+  cb.studies)
 }
 \arguments{
 \item{abTE}{Numeric. The treatment effect for a vs b. e.g. log OR, log HR,
@@ -25,6 +26,9 @@ Ratio' or 'log Odds Ratio'}
 
 \item{model}{Character string indicating whether abTE and cbTE come from a
 fixed effect model or a random effect model}
+
+\item{effect_measure}{A character string indicating what type of effect
+measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
 
 \item{intervention}{Character string. Name of the intervention treatment}
 

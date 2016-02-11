@@ -19,6 +19,8 @@
 #' @param direct_results A data frame containing the results of direct
 #'   meta-analysis as returned by \code{runDirect}. These results are required
 #'   to provide the inputs for the indirect comparisons
+#' @param effect_measure A character string indicating what type of effect
+#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.
 #' @param effect_type A character string indicating what kind of analysis is
 #'   required. Set to 'Fixed' for fixed effect, 'Random' for random effects or
 #'   'all' to get both (Default).
@@ -57,8 +59,10 @@
 #'   provides a detailed description of the columns in the output
 #'
 #' @seealso \code{\link{doBucher}}, \code{\link{runDirect}}
-runIndirect = function(df, data_type, direct_results, effect_type = 'all',
-                       back_calc = FALSE, order_treatments = NA) {
+runIndirect = function(df, data_type, direct_results, effect_measure,
+                       effect_type = 'all', back_calc = FALSE,
+                       order_treatments = NA) {
+
   message('Run indirect (Bucher) meta-analysis')
 
   #convert data to a suitable format
@@ -66,7 +70,8 @@ runIndirect = function(df, data_type, direct_results, effect_type = 'all',
 
   indMA = doBucher(
     comparisons = reDataDirect[,1:4], direct = direct_results,
-    effectType = effect_type, backtransf = back_calc
+    effectType = effect_type, effect_measure = effect_measure,
+    backtransf = back_calc
   )
   if(is.data.frame(order_treatments)){
     #set the order of results
@@ -147,6 +152,8 @@ runIndirect = function(df, data_type, direct_results, effect_type = 'all',
 #'   Ratio' or 'log Odds Ratio'
 #' @param model Character string indicating whether abTE and cbTE come from a
 #'   fixed effect model or a random effect model
+#' @param effect_measure A character string indicating what type of effect
+#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.
 #' @param intervention Character string. Name of the intervention treatment
 #' @param comparator Character string. Name of the comparator treatment
 #' @param common Character string. Name of the common comparator that links the
@@ -195,18 +202,28 @@ runIndirect = function(df, data_type, direct_results, effect_type = 'all',
 #'
 #'   @seealso \code{\link{doBucher}}
 
-bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model,
+bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, effect_measure,
                   intervention, comparator, common, backtransf = FALSE,
                   ab.studies, cb.studies) {
 
   acTE = abTE - cbTE #indirect treatment effect
   se.acTE = sqrt(se.abTE ^ 2 + se.cbTE ^ 2) #standard error - sqrt(sum of the two variances)
-  log.lower = acTE - (1.96 * se.acTE) #calculate confidence intervals
-  log.upper = acTE + (1.96 * se.acTE)
-  df = data.frame(
-    'log.TE.ind' = acTE, 'log.lower.ind' = log.lower, 'log.upper.ind' = log.upper, 'se.log.TE.ind' =
-      se.acTE
-  )
+  lower = acTE - (1.96 * se.acTE) #calculate confidence intervals
+  upper = acTE + (1.96 * se.acTE)
+  if(effect_measure != 'Mean Difference') {
+    #if the effect measure is not mean difference then results will be on a log scale
+    #set column names accordingly
+    df = data.frame(
+      'log.TE.ind' = acTE, 'log.lower.ind' = lower, 'log.upper.ind' = upper,
+      'se.log.TE.ind' = se.acTE
+    )
+  } else {
+    #if the effect measure is a mean difference then results will be on a linear scale
+    df = data.frame(
+      'TE.ind' = acTE, 'lower.ind' = lower, 'upper.ind' = upper,
+      'se.TE.ind' = se.acTE
+    )
+  }
 
   #exponentiate if required
   if (backtransf == TRUE) {
@@ -247,6 +264,8 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model,
 #'   required. Default is 'all' which will return both fixed effect and random
 #'   effect results. Alternatives are 'Fixed' or 'Random' (Case sensitive) if
 #'   only one set of results is required
+#' @param effect_measure A character string indicating what type of effect
+#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.
 #'
 #' @details This function performs indirect meta-analysis for all possible
 #'   comparisons in a given data set. This function takes a set of treatment
@@ -283,8 +302,9 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model,
 #' }
 #' @seealso \code{\link{bucher}}, \code{\link{doDirectMeta}},
 #'   \code{\link{extractDirectRes}}
+
 doBucher = function(comparisons, direct, effectType = 'all',
-                    backtransf = FALSE) {
+                    effect_measure, backtransf = FALSE) {
 
   #get all the pairs of comparisons
   connections = dplyr::select(comparisons, from = treatment, to = comparator)
@@ -330,17 +350,30 @@ doBucher = function(comparisons, direct, effectType = 'all',
       #then we need to invert the treatment effect
       ix = indComp$InterventionCode == triplet$via
       if (any(ix) == TRUE) {
-        indComp$log.TE[ix] = -indComp$log.TE[ix]
+        #reverse the treatment codes
         indComp[ix, c('InterventionCode', 'ComparatorCode')] = indComp[ix, c('ComparatorCode', 'InterventionCode')]
         indComp[ix, c('Intervention', 'Comparator')] = indComp[ix, c('Comparator', 'Intervention')]
+        if(effect_measure=='Mean Difference') {
+          #invert treatment effect for continuous data
+          #linear scale
+          indComp$TE[ix] =-indComp$TE[ix]
+          abTE = indComp$TE[indComp$InterventionCode == triplet$from]
+          se.abTE = indComp$seTE[indComp$InterventionCode == triplet$from]
+          cbTE = indComp$TE[indComp$InterventionCode == triplet$to]
+          se.cbTE = indComp$seTE[indComp$InterventionCode == triplet$to]
+        } else {
+          #invert treatment effect for other effect measures
+          #log scale
+          indComp$log.TE[ix] =-indComp$log.TE[ix]
+          abTE = indComp$log.TE[indComp$InterventionCode == triplet$from]
+          se.abTE = indComp$seTE.log[indComp$InterventionCode == triplet$from]
+          cbTE = indComp$log.TE[indComp$InterventionCode == triplet$to]
+          se.cbTE = indComp$seTE.log[indComp$InterventionCode == triplet$to]
+        }
       }
 
       #run the comparison
       e = indComp$Effect[1]
-      abTE = indComp$log.TE[indComp$InterventionCode == triplet$from]
-      se.abTE = indComp$seTE.log[indComp$InterventionCode == triplet$from]
-      cbTE = indComp$log.TE[indComp$InterventionCode == triplet$to]
-      se.cbTE = indComp$seTE.log[indComp$InterventionCode == triplet$to]
       int = indComp$Intervention[indComp$InterventionCode == triplet$from]
       com = indComp$Intervention[indComp$InterventionCode == triplet$to]
       common = indComp$Comparator[indComp$ComparatorCode == triplet$via][1]
@@ -351,7 +384,8 @@ doBucher = function(comparisons, direct, effectType = 'all',
         model = mod[k], intervention = int,
         comparator = com, common = common,
         ab.studies = indComp$studies[1],
-        cb.studies = indComp$studies[2]
+        cb.studies = indComp$studies[2],
+        effect_measure = effect_measure
       )
 
       #collect FE and RE results
@@ -373,10 +407,22 @@ doBucher = function(comparisons, direct, effectType = 'all',
   df = rbutils::factorToCharacter(df)
 
   #rearrange the columns into a more report friendly format
-  df = dplyr::select(
-    df, Effect, Intervention, Comparator, Common, TE.ind, lower.ind, upper.ind,
-    n.studies, Studies, Model, log.TE.ind, log.lower.ind, log.upper.ind,
-    se.log.TE.ind
-  )
+  #depending on the effect measure a different set of columns
+  #will be present
+  if(effect_measure != 'Mean Difference' & backtransf == TRUE) {
+    #if the effect measure is not a mean difference and backtransf is TRUE
+    #then the results table will include the log effect estimates
+    df = dplyr::select(
+      df, Effect, Intervention, Comparator, Common, TE.ind, lower.ind, upper.ind,
+      n.studies, Studies, Model, log.TE.ind, log.lower.ind, log.upper.ind,
+      se.log.TE.ind
+    )
+  } else {
+    #if the effect_measure is a mean difference then there will be no log estimates
+    df = dplyr::select(
+      df, Effect, Intervention, Comparator, Common, TE.ind, lower.ind, upper.ind,
+      n.studies, Studies, Model
+    )
+  }
 
 }
