@@ -59,7 +59,7 @@
 #'   provides a detailed description of the columns in the output
 #'
 #' @seealso \code{\link{doBucher}}, \code{\link{runDirect}}
-runIndirect = function(df, data_type, direct_results, effect_measure,
+runIndirect = function(df, data_type, direct_results, effect_measure=NA,
                        effect_type = 'all', back_calc = FALSE,
                        order_treatments = NA) {
 
