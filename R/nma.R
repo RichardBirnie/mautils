@@ -89,6 +89,11 @@
 #'   inconsistency should be performed. If set to \code{TRUE} (default) then the
 #'   \code{mtc.nodesplit} function from gemtc is used to run all possible
 #'   nodesplitting models for the current network.
+#' @param rank A logical indicating whether ranking probabilities should be calculated.
+#' @param higher_better A logical indicating whether higher or lower values
+#' equate to a better outcome. If set to \code{TRUE} then higher values are
+#' considered a better outcome. This is only used in the calculation of ranking
+#' probabilities via \code{\link[gemtc]{rank.probability}}
 #'
 #' @details This function provides an interface to run MTC analyses using the
 #'   gemtc package. Although the function has a large number of arguments the
@@ -110,7 +115,8 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
                   max_val = 5, prior = mtc.hy.prior("std.dev", "dunif", 0, max_val),
                   burn_in = 10000, iterations = 20000, save_convergence = TRUE,
                   back_calc = FALSE, includes_placebo = FALSE, placebo_code,
-                  report_order = 'default', check_inconsistency = TRUE) {
+                  report_order = 'default', check_inconsistency = TRUE, rank=FALSE,
+                  higher_better=FALSE) {
   message('Start MTC')
   #create an mtc.network object
   #note different data argument for treatment differences versus per arm data
@@ -201,6 +207,34 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
     mtcResults = gemtc::mtc.run(model, n.adapt = burn_in, n.iter = iterations,
                                 thin = 1)
 
+    if(rank) {
+      #calculate ranking probabilities and save the results
+      r = gemtc::rank.probability(mtcResults,
+                                  preferredDirection = ifelse(higher_better, 1,-1)
+                                  )
+      ranks = extractRanks(ranks = r, treatments = treatments)
+      rankDir = file.path(MTCresDir, 'Ranking')
+      if (!dir.exists(rankDir)) {
+        dir.create(rankDir, showWarnings = FALSE, recursive = TRUE)
+      }
+      rankFile = file.path(rankDir, paste0(outcome, '_', analysis_case, '_ranking.xlsx'))
+      rbutils::saveXLSX(
+        as.data.frame(ranks[2:ncol(ranks)]), file = rankFile, sheetName = 'Ranking',
+        showNA = FALSE, row.names = FALSE, append = TRUE
+      )
+
+      #plot the ranks
+      p = plotRanks(ranks)
+      f = paste0(outcome, '_', analysis_case, '_ranking.jpg')
+      rankfig = file.path(rankDir, f)
+      jpeg(
+        file = rankfig, width = 22, height = 15, units = 'cm', res = 300,
+        quality = 100
+      )
+      suppressWarnings(print(p))
+      graphics.off()
+    }
+
     #Save the JAGS (or BUGS) code that was generated for the model
     #set up a file to save the model. If necessary create the directory
     message('Save model file')
@@ -236,7 +270,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         pairwiseResults, toi = placebo_code, treatments = treatmentID,
         intervention = FALSE, reportOrder = report_order
       )
-      saveXLSX(
+      rbutils::saveXLSX(
         as.data.frame(placebo), file = MTCresultsFile, sheetName = 'Placebo',
         showNA = FALSE, row.names = FALSE, append = TRUE
       )
@@ -267,7 +301,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         intervention = TRUE, reportOrder = report_order
       )
       #ALWAYS APPEND=TRUE OR YOU WILL OVERWRITE THE EXISTING RESULTS
-      saveXLSX(
+      rbutils::saveXLSX(
         as.data.frame(tr), file = MTCresultsFile, sheetName = n, showNA = FALSE,
         row.names = FALSE, append = TRUE
       )
@@ -831,6 +865,26 @@ saveModelCode = function(mtcRes, modelFile) {
   cat(mtcRes$model$code, file = modelFile, append = TRUE)
 }
 
+#'Extract ranking probabilities
+#'
+#' @param ranks An object of class \code{mtc.rank.probability} as returned by
+#'   the \code{probability} function in the \code{gemtc} package
+#' @param treatments A data frame with columns 'description' defining the
+#'   treatment names and 'id' defining the treatment ID numbers.
+#' @details This function takes the ranking probablilities returned by \code{rank.probability}, matches the treatment names to the id numbers and returns the results as a data frame
+#'
+#' @return A data frame
+#'
+#' @seealso \code{\link[gemtc]{rank.probability}}
+extractRanks = function(ranks, treatments) {
+  class(ranks) = 'matrix'
+  ranks = as.data.frame(ranks)
+  colnames(ranks) = paste0('Rank', 1:ncol(ranks))
+  ranks$id = as.integer(rownames(ranks))
+  ranks = dplyr::left_join(treatments[,1:2], ranks, by = 'id')
+  ranks = dplyr::arrange(ranks, dplyr::desc(Rank1))
+}
+
 #' Save convergence diagnostics
 #' @param mtc An object of class \code{mtc.result} as returned by \code{mtc.run}
 #'   in the \code{gemtc} package
@@ -947,43 +1001,36 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
     panel.border = ggplot2::element_rect(colour = 'black')
   )
 }
-#close but not quite
-#
-# yvar = 'comparison'
-# xvar = 'effect'
-# lowLimit = 'lower'
-# hiLimit = 'upper'
-#
-# df = as.data.frame(nsRes)
-# #create a column to use for the y-axis
-# df$comparison = paste0(df$Intervention, '\n', df$Comparator)
-#
-# #re-arrange the data
-# dir = dplyr::select(df, 3:7, comparison)
-# colnames(dir)[3:5] = c('effect', 'lower', 'upper')
-# dir$method = 'direct'
-# ind = dplyr::select(df, 3:4, 8:10, comparison)
-# colnames(ind)[3:5] = c('effect', 'lower', 'upper')
-# ind$method = 'indirect'
-# cons = dplyr::select(df, 3:4, 11:13, comparison)
-# colnames(cons)[3:5] = c('effect', 'lower', 'upper')
-# cons$method = 'pooled'
-# pd = bind_rows(dir, ind, cons)
-#
-# pd = as.data.frame(pd)
-# pd[,'comparison'] = factor(pd[,'comparison'], levels = sort(unique(pd[,'comparison'])))
-#
-# dodge = ggplot2::position_dodge(width=1)
-# p = ggplot2::ggplot(pd) +
-#   ggplot2::geom_point(ggplot2::aes_string(x = yvar, y = xvar, colour = 'method'), size = 4,
-#                       position = dodge)
-#
-# p = p + ggplot2::geom_errorbar(
-#   ggplot2::aes_string(x = yvar, y = xvar, ymax = hiLimit, ymin = lowLimit, colour = 'method'),
-#   height = 0.25, position = dodge
-# )
-# p = p + ggplot2::scale_x_discrete(limits = rev(levels(pd[,yvar])), expand = c(0, 1))
-#
-# p = p + ggplot2::coord_flip()
-#
-#
+
+#' Plot rank probabilities
+#'
+#' @param ranks A data frame of ranking probabilities for each treatment as
+#'   returned by \code{extractRanks}
+#' @details This function takes a data frame of ranking probabilities for each
+#'   treatment in a network and constructs a 'rankogram'; i.e. a bar chart
+#'   showing the probability of being ranked first, second, third etc. for each
+#'   treatment
+#' @return A ggplot object which can then be saved using an appropriate graphics
+#'   device, e.g. jpeg, png, pdf etc.
+#' @seealso \code{\link{extractRanks}}, \code{\link[gemtc]{rank.probability}}
+plotRanks = function(ranks) {
+  ranks = tidyr::gather(ranks[,2:ncol(ranks)], description, Probability)
+  colnames(ranks)[2] = 'Rank'
+  p = ggplot2::ggplot(ranks) +
+    ggplot2::geom_bar(
+      ggplot2::aes(x = description, y = Probability, fill = Rank),
+      position = 'dodge', stat = 'identity'
+    )
+  p = p + ggplot2::scale_fill_brewer(palette = 'Dark2')
+  p = p + ggplot2::theme_bw()
+  p = p + ggplot2::theme(
+    panel.grid = ggplot2::element_blank(),
+    axis.text = ggplot2::element_text(size = 12),
+    axis.text.x = ggplot2::element_text(
+      angle = 45, hjust = 1, vjust = 1
+    ),
+    axis.title = ggplot2::element_text(size = 12, vjust = 0),
+    axis.title.x = ggplot2::element_blank(),
+    panel.border = ggplot2::element_rect(colour = 'black')
+  )
+}

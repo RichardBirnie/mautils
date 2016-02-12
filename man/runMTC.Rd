@@ -10,7 +10,7 @@ runMTC(df, file, data_type, treatmentID, effect_measure, toi,
   prior = mtc.hy.prior("std.dev", "dunif", 0, max_val), burn_in = 10000,
   iterations = 20000, save_convergence = TRUE, back_calc = FALSE,
   includes_placebo = FALSE, placebo_code, report_order = "default",
-  check_inconsistency = TRUE)
+  check_inconsistency = TRUE, rank = FALSE, higher_better = FALSE)
 }
 \arguments{
 \item{df}{A \code{data.frame} This should be in one of two formats. Arm level
@@ -122,6 +122,13 @@ column named 'Order', see above.}
 inconsistency should be performed. If set to \code{TRUE} (default) then the
 \code{mtc.nodesplit} function from gemtc is used to run all possible
 nodesplitting models for the current network.}
+
+\item{rank}{A logical indicating whether ranking probabilities should be calculated.}
+
+\item{higher_better}{A logical indicating whether higher or lower values
+equate to a better outcome. If set to \code{TRUE} then higher values are
+considered a better outcome. This is only used in the calculation of ranking
+probabilities via \code{\link[gemtc]{rank.probability}}}
 }
 \description{
 Run a mixed treatment comparison (MTC, a.k.a network meta-analysis)

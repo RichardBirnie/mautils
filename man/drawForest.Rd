@@ -7,7 +7,7 @@
 drawForest(meta, showFixed = TRUE, showRandom = TRUE, ...)
 }
 \arguments{
-\item{meta}{an object of class c("metagen", "meta"), c("metabin", "meta") or
+\item{meta}{an object of class c("metagen", "meta"), c("metacont", "meta") or
 c("metabin", "meta") as returned by the functions \code{metagen},
 \code{metabin} or \code{metacont} in the package meta}
 
