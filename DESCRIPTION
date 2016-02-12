@@ -15,6 +15,7 @@ License: GPL-3
 LazyData: TRUE
 Imports:
     dplyr (>= 0.4.3),
+    tidyr (>= 0.4.1),
     stringr (>= 1.0.0),
     readxl (>= 0.1.0),
     xlsx (>= 0.5.7),
