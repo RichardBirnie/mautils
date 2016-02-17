@@ -885,6 +885,54 @@ extractRanks = function(ranks, treatments) {
   ranks = dplyr::arrange(ranks, dplyr::desc(Rank1))
 }
 
+#' Extract the coda from an mtc.result object
+#'
+#' @param mtcResults An \code{mtc.result} object as returned by \code{mtc.run}
+#'   from the gemtc package
+#' @param summarise logical. If TRUE (default) and the mtc.result object
+#'   includes more than one chain then the mean across all chains is calculated
+#'   for each variable at each iteration of the chains
+#'
+#' @details This function takes the output from running an MTC model using
+#'   mtc.run, extracts the coda from the \code{mtc.result} object and returns a
+#'   data frame. If the summarise argument is TRUE and multiple chains were used
+#'   for the MCMC then this function will return the mean across all chains for
+#'   each variable in the model at each iteration of the chain. This is the
+#'   default behaviour. If the summarise argument is FALSE then results for each
+#'   individual chain are preserved.
+#'
+#' @return If summarise = TRUE:
+#' \itemize{
+#' \item A data frame with one column per variable plus one column indicating
+#' the iteration of the chain. The values for each variable will be the mean
+#' across all chains for each iteration of the chain
+#' }
+#' If summarise = FALSE:
+#' \itemize{
+#' \item A data frame with one column per variable plus one column indicating
+#' the iteration of each chain and one column indicating the chain numbered 1,
+#' 2, 3 etc. The values for each variable will be the value of the variable at
+#' the indicated iteration of the indicated chain.
+#' }
+#'
+#' @seealso \code{\link[gemtc]{mtc.run}}
+extractCoda = function(mtcResults, summarise=TRUE) {
+  #starts with the output from mtc.run
+  #extract coda from results object
+  #coerce to a matrix and then to a data frame
+  mtcCoda = coda::as.mcmc.list(mtcResults)
+  mtcCoda = as.data.frame(as.matrix(mtcCoda, iters = TRUE, chains = TRUE))
+
+  if(summarise & max(unique(mtcCoda$CHAIN)) >1) {
+    #Get the mean across all three chains for each variable separately at each
+    #iteration of the chains.
+    #results are on log scale
+    mtcCoda = dplyr::group_by(mtcCoda, ITER) %>%
+      dplyr::summarise_each(funs(mean),-CHAIN)
+  }
+  return(mtcCoda)
+}
+
 #' Save convergence diagnostics
 #' @param mtc An object of class \code{mtc.result} as returned by \code{mtc.run}
 #'   in the \code{gemtc} package
