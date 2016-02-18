@@ -94,6 +94,14 @@
 #' equate to a better outcome. If set to \code{TRUE} then higher values are
 #' considered a better outcome. This is only used in the calculation of ranking
 #' probabilities via \code{\link[gemtc]{rank.probability}}
+#' @param keep_coda A logical indicating whether the coda should be extracted from
+#'   the MCMC simulation. This is set to \code{FALSE} by default. If set to
+#'   \code{TRUE} then the coda will be extracted and saved in folder named Coda
+#' @param summarise_coda A logical indicating whether the coda should be
+#'   averaged across chains for multiple chains. This is set to \code{FALSE} by
+#'   default and results are returned for each chain separately. If set to
+#'   \code{TRUE} then the result will be the mean across all chains for each
+#'   variable at each iteration of the chains
 #'
 #' @details This function provides an interface to run MTC analyses using the
 #'   gemtc package. Although the function has a large number of arguments the
@@ -116,7 +124,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
                   burn_in = 10000, iterations = 20000, save_convergence = TRUE,
                   back_calc = FALSE, includes_placebo = FALSE, placebo_code,
                   report_order = 'default', check_inconsistency = TRUE, rank=FALSE,
-                  higher_better=FALSE) {
+                  higher_better=FALSE, keep_coda=FALSE, summarise_coda=FALSE) {
   message('Start MTC')
   #create an mtc.network object
   #note different data argument for treatment differences versus per arm data
@@ -208,6 +216,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
                                 thin = 1)
 
     if(rank) {
+      message('Calculating ranking')
       #calculate ranking probabilities and save the results
       r = gemtc::rank.probability(mtcResults,
                                   preferredDirection = ifelse(higher_better, 1,-1)
@@ -233,6 +242,27 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       )
       suppressWarnings(print(p))
       graphics.off()
+    }
+
+    #save the coda if requested
+    if(keep_coda) {
+      message('Saving Coda')
+      #extract the coda from the results object
+      mtcCoda = extractCoda(mtcResults = mtcResults, summarise = summarise_coda)
+      #set up a directory for the results
+      codaDir = file.path(MTCresDir, 'Coda')
+      if (!dir.exists(codaDir)) {
+        dir.create(codaDir, showWarnings = FALSE, recursive = TRUE)
+      }
+      #save to file
+      #save the treatment codes and the coda to files file
+      codaFile = file.path(codaDir, paste0(outcome, '_', analysis_case, '_Coda.csv'))
+      write.csv(mtcCoda, file=codaFile, row.names=FALSE, quote=FALSE)
+      trFile = file.path(codaDir, paste0(outcome, '_', analysis_case, '_treatments.xlsx'))
+      rbutils::saveXLSX(
+        as.data.frame(treatmentID), file = trFile, sheetName = 'Treatments',
+        showNA = FALSE, row.names = FALSE, append = TRUE
+      )
     }
 
     #Save the JAGS (or BUGS) code that was generated for the model

@@ -10,7 +10,8 @@ runMTC(df, file, data_type, treatmentID, effect_measure, toi,
   prior = mtc.hy.prior("std.dev", "dunif", 0, max_val), burn_in = 10000,
   iterations = 20000, save_convergence = TRUE, back_calc = FALSE,
   includes_placebo = FALSE, placebo_code, report_order = "default",
-  check_inconsistency = TRUE, rank = FALSE, higher_better = FALSE)
+  check_inconsistency = TRUE, rank = FALSE, higher_better = FALSE,
+  keep_coda = FALSE, summarise_coda = FALSE)
 }
 \arguments{
 \item{df}{A \code{data.frame} This should be in one of two formats. Arm level
@@ -129,6 +130,16 @@ nodesplitting models for the current network.}
 equate to a better outcome. If set to \code{TRUE} then higher values are
 considered a better outcome. This is only used in the calculation of ranking
 probabilities via \code{\link[gemtc]{rank.probability}}}
+
+\item{keep_coda}{A logical indicating whether the coda should be extracted from
+the MCMC simulation. This is set to \code{FALSE} by default. If set to
+\code{TRUE} then the coda will be extracted and saved in folder named Coda}
+
+\item{summarise_coda}{A logical indicating whether the coda should be
+averaged across chains for multiple chains. This is set to \code{FALSE} by
+default and results are returned for each chain separately. If set to
+\code{TRUE} then the result will be the mean across all chains for each
+variable at each iteration of the chains}
 }
 \description{
 Run a mixed treatment comparison (MTC, a.k.a network meta-analysis)
