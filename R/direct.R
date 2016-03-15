@@ -553,6 +553,8 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
     #ratio measures
     limits = range(exp(limits))
     xlower = ifelse(limits[1] < 0.2, round(limits[1], 1), 0.2)
+    #check that the lower limit does not end up as zero
+    xlower = ifelse(xlower == 0, 0.01, xlower)
     xupper = ifelse(limits[2] > 5, round(limits[2]), 5)
   } else {
     #if data are continuous then set limits accordingly
