@@ -610,7 +610,7 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
 extractModelFit = function(mtcRes) {
   modelSummary = .summariseMTC(mtcRes)
   dic = data.frame(
-    'Mean' = modelSummary$DIC,
+    'Mean' = modelSummary$DIC[1:3],
     'SD' = NA,
     row.names = c('Dbar', 'pD', 'DIC')
   )
