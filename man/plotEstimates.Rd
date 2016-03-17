@@ -5,8 +5,7 @@
 \title{Plot the results of a network meta-analysis}
 \usage{
 plotEstimates(df, yvar, xvar = "median", lowLimit = "CrI_lower",
-  hiLimit = "CrI_upper", xlabel = "Effect Estimate", noEffectLine = 1,
-  reportOrder = "default")
+  hiLimit = "CrI_upper", xlabel = "Effect Estimate", noEffectLine = 1)
 }
 \arguments{
 \item{df}{A data frame containing summary statistics for the posterior

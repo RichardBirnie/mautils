@@ -21,6 +21,7 @@ Imports:
     xlsx (>= 0.5.7),
     meta (>= 4.3.0),
     ggplot2 (>= 1.0.1),
+    grid (>= 3.2.3),
     scales (>= 0.3.0),
     igraph (>= 1.0.1),
     rbutils (>= 0.1),

@@ -308,18 +308,17 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       #make a plot of all treatments vs placebo
       p = plotEstimates(
         df = placebo, yvar = 'nameB', xlabel = effect_measure,
-        noEffectLine = ifelse(effect_measure == 'Mean Difference', 0, 1),
-        reportOrder = report_order
+        noEffectLine = ifelse(effect_measure == 'Mean Difference', 0, 1)
       )
       #save the plot
-      #Note that the figure height is calculated as number of treatments x cm
+      #Note that the figure height is calculated as number of treatments x 1.1 cm
       figFile = file.path(MTCfigDir, 'AllVsPlacebo.jpg')
-      h = nrow(placebo)*1.25
+      h = nrow(placebo)*1.1
       jpeg(
-        file = figFile, width = 20, height = h, units = 'cm', res = 300,
+        file = figFile, width = 16, height = h, units = 'cm', res = 300,
         quality = 100
       )
-      suppressWarnings(print(p))
+      grid::grid.draw(p)
       graphics.off()
       rm(placebo)
     }
@@ -341,19 +340,18 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       #make a plot for each treatment of interest vs all other treatments
       p = plotEstimates(
         df = tr, yvar = 'nameA', xlabel = effect_measure,
-        noEffectLine = ifelse(effect_measure == 'Mean Difference', 0, 1),
-        reportOrder = report_order
+        noEffectLine = ifelse(effect_measure == 'Mean Difference', 0, 1)
       )
       #save the plot
-      #Note that the figure height is calculated as number of treatments x 1.25cm
+      #Note that the figure height is calculated as number of treatments x 1.1cm
       f = paste0(outcome, ' ', n, 'VsAll.jpg')
       figFile = file.path(MTCfigDir, f)
-      h = nrow(tr)*1.25
+      h = nrow(tr)*1.1
       jpeg(
-        file = figFile, width = 20, height = h, units = 'cm', res = 300,
+        file = figFile, width = 16, height = h, units = 'cm', res = 300,
         quality = 100
       )
-      suppressWarnings(print(p))
+      grid::grid.draw(p)
       graphics.off()
     }
     rm(tr)
@@ -398,7 +396,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
           file = incfig, width = 22, height = 15, units = 'cm', res = 300,
           quality = 100
         )
-        suppressWarnings(print(p))
+        grid::grid.draw(p)
         graphics.off()
       }
     }
@@ -1041,25 +1039,22 @@ saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
 #'   \code{\link[ggplot2]{geom_errorbarh}}
 plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
                          hiLimit = 'CrI_upper', xlabel = 'Effect Estimate',
-                         noEffectLine = 1, reportOrder = 'default') {
+                         noEffectLine = 1) {
   df = as.data.frame(df)
-  if (reportOrder == 'default') {
-    df[,yvar] = factor(df[,yvar], levels = sort(unique(df[,yvar])))
-    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = yvar), size = 2)
-    p = p + ggplot2::geom_errorbarh(
-      ggplot2::aes_string(x = xvar, y = yvar, xmax = hiLimit, xmin = lowLimit),
-      height = 0.15
-      )
-    p = p + ggplot2::scale_y_discrete(limits = rev(levels(df[,yvar])))
+  if (!'Order' %in% colnames(df)) {
+    df = df[order(df[,yvar]),]
+    df$Order = 1:nrow(df)
   }
-  if(reportOrder == 'custom') {
-    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = 'Order'), size = 2)
-    p = p + ggplot2::geom_errorbarh(
-      ggplot2::aes_string(x = xvar, y = 'Order', xmax = hiLimit, xmin = lowLimit),
-      height = 0.15
-      )
-    p = p + ggplot2::scale_y_reverse(breaks = df[,'Order'], labels = df[,yvar])
-  }
+  df$values = paste0(sprintf("%.2f", df[,xvar]), ' (', sprintf("%.2f",df[,lowLimit]), ' to ', sprintf("%.2f", df[,hiLimit]), ')')
+
+  #build the basic plot
+  p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = 'Order'), size = 2)
+  p = p + ggplot2::geom_errorbarh(ggplot2::aes_string(
+    x = xvar, y = 'Order', xmax = hiLimit, xmin = lowLimit
+  ),
+  height = 0.15)
+  p = p + ggplot2::scale_y_reverse(breaks = df[,'Order'], labels = df[,yvar], expand = c(0, 0.2))
+
 
   #set sensible scale for x-axis
   #default is for ratio measures (OR, HR etc).
@@ -1071,17 +1066,29 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
   } else {
     xrange = c(NA,NA)
   }
-
   p = p + ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10), limits = xrange)
   p = p + ggplot2::labs(x = xlabel)
   p = p + ggplot2::geom_vline(xintercept = noEffectLine)
   p = p + ggplot2::theme_bw()
+
+  #add annotations - values on right side
+  p = p + ggplot2::theme(plot.margin = grid::unit(c(1,7,1,1), 'lines'))
+  p = p + ggplot2::geom_text(ggplot2::aes_string(label = 'values',x = Inf, y = 'Order'),
+                             hjust = -0.1, size = 3)
+
+  #tidy up the final appearance
   p = p + ggplot2::theme(
     axis.title.y = ggplot2::element_blank(), panel.grid = ggplot2::element_blank(),
-    axis.text = ggplot2::element_text(size = 10),
-    axis.title = ggplot2::element_text(size = 10, vjust = 0),
+    axis.text = ggplot2::element_text(size = 8),
+    axis.title = ggplot2::element_text(size = 8, vjust = 0),
     panel.border = ggplot2::element_rect(colour = 'black')
   )
+
+  #Code to override clipping so that annotation is visible
+  gt <- ggplot2::ggplot_gtable(ggplot2::ggplot_build(p))
+  gt$layout$clip[gt$layout$name == "panel"] <- "off"
+  return(gt)
+  # grid::grid.draw(gt)
 }
 
 #' Plot rank probabilities
