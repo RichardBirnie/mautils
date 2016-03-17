@@ -312,9 +312,11 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         reportOrder = report_order
       )
       #save the plot
+      #Note that the figure height is calculated as number of treatments x cm
       figFile = file.path(MTCfigDir, 'AllVsPlacebo.jpg')
+      h = nrow(placebo)*1.25
       jpeg(
-        file = figFile, width = 22, height = 15, units = 'cm', res = 300,
+        file = figFile, width = 20, height = h, units = 'cm', res = 300,
         quality = 100
       )
       suppressWarnings(print(p))
@@ -343,10 +345,12 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         reportOrder = report_order
       )
       #save the plot
+      #Note that the figure height is calculated as number of treatments x 1.25cm
       f = paste0(outcome, ' ', n, 'VsAll.jpg')
       figFile = file.path(MTCfigDir, f)
+      h = nrow(tr)*1.25
       jpeg(
-        file = figFile, width = 22, height = 15, units = 'cm', res = 300,
+        file = figFile, width = 20, height = h, units = 'cm', res = 300,
         quality = 100
       )
       suppressWarnings(print(p))
@@ -1041,7 +1045,7 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
   df = as.data.frame(df)
   if (reportOrder == 'default') {
     df[,yvar] = factor(df[,yvar], levels = sort(unique(df[,yvar])))
-    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = yvar), size = 4)
+    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = yvar), size = 2)
     p = p + ggplot2::geom_errorbarh(
       ggplot2::aes_string(x = xvar, y = yvar, xmax = hiLimit, xmin = lowLimit),
       height = 0.15
@@ -1049,7 +1053,7 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
     p = p + ggplot2::scale_y_discrete(limits = rev(levels(df[,yvar])))
   }
   if(reportOrder == 'custom') {
-    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = 'Order'), size = 4)
+    p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = 'Order'), size = 2)
     p = p + ggplot2::geom_errorbarh(
       ggplot2::aes_string(x = xvar, y = 'Order', xmax = hiLimit, xmin = lowLimit),
       height = 0.15
@@ -1074,8 +1078,8 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
   p = p + ggplot2::theme_bw()
   p = p + ggplot2::theme(
     axis.title.y = ggplot2::element_blank(), panel.grid = ggplot2::element_blank(),
-    axis.text = ggplot2::element_text(size = 12),
-    axis.title = ggplot2::element_text(size = 12, vjust = 0),
+    axis.text = ggplot2::element_text(size = 10),
+    axis.title = ggplot2::element_text(size = 10, vjust = 0),
     panel.border = ggplot2::element_rect(colour = 'black')
   )
 }
