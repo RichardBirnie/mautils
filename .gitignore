@@ -2,6 +2,4 @@
 .Rhistory
 .RData
 inst/doc
-R/experimental.R
-R/diagnostics.R
-Task list.docx
+
