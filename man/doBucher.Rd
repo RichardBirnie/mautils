@@ -25,8 +25,15 @@ required. Default is 'all' which will return both fixed effect and random
 effect results. Alternatives are 'Fixed' or 'Random' (Case sensitive) if
 only one set of results is required}
 
-\item{effect_measure}{A character string indicating what type of effect
-measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
+\item{continuous}{Logical (TRUE/FALSE) indicating whether the effect measure
+is continuous (mean difference) or a ratio measure (odds ratio, hazard
+ratio etc)}
+
+\item{backtransf}{Logical indicating whether the results should be
+exponentiated or not. If abTE and cbTE are on the log scale (e.g. log
+hazard ratio) set this to TRUE to return the exponentiated results (e.g.
+hazard ratio). If TRUE this will return both the log estimates and the
+exponentiated estimates}
 }
 \description{
 Perform all possible indirect comparisons for a given data set

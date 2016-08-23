@@ -26,6 +26,10 @@ Ratio' or 'log Odds Ratio'}
 \item{model}{Character string indicating whether abTE and cbTE come from a
 fixed effect model or a random effect model}
 
+\item{continuous}{Logical (TRUE/FALSE) indicating whether the effect measure
+is continuous (mean difference) or a ratio measure (odds ratio, hazard
+ratio etc).}
+
 \item{intervention}{Character string. Name of the intervention treatment}
 
 \item{comparator}{Character string. Name of the comparator treatment}
@@ -39,8 +43,11 @@ hazard ratio) set this to TRUE to return the exponentiated results (e.g.
 hazard ratio). If TRUE this will return both the log estimates and the
 exponentiated estimates}
 
-\item{effect_measure}{A character string indicating what type of effect
-measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.}
+\item{ab.studies}{Character string giving the names of studies in the A vs B
+comparison separated by commas}
+
+\item{cb.studies}{Character string giving the names of studies in the C vs B
+comparison separated by commas}
 }
 \description{
 Simple indirect (Bucher) meta-analysis

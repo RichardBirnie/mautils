@@ -19,8 +19,10 @@
 #' @param direct_results A data frame containing the results of direct
 #'   meta-analysis as returned by \code{runDirect}. These results are required
 #'   to provide the inputs for the indirect comparisons
-#' @param effect_measure A character string indicating what type of effect
-#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.
+#' @param continuous Logical (TRUE/FALSE) indicating whether the effect measure
+#'   is continuous (mean difference) or a ratio measure (odds ratio, hazard
+#'   ratio etc). This is passed directly to \code{doBucher} and then to
+#'   \code{bucher}
 #' @param effect_type A character string indicating what kind of analysis is
 #'   required. Set to 'Fixed' for fixed effect, 'Random' for random effects or
 #'   'all' to get both (Default).
@@ -152,8 +154,9 @@ runIndirect = function(df, data_type, direct_results, continuous=FALSE,
 #'   Ratio' or 'log Odds Ratio'
 #' @param model Character string indicating whether abTE and cbTE come from a
 #'   fixed effect model or a random effect model
-#' @param effect_measure A character string indicating what type of effect
-#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.
+#' @param continuous Logical (TRUE/FALSE) indicating whether the effect measure
+#'   is continuous (mean difference) or a ratio measure (odds ratio, hazard
+#'   ratio etc).
 #' @param intervention Character string. Name of the intervention treatment
 #' @param comparator Character string. Name of the comparator treatment
 #' @param common Character string. Name of the common comparator that links the
@@ -163,6 +166,10 @@ runIndirect = function(df, data_type, direct_results, continuous=FALSE,
 #'   hazard ratio) set this to TRUE to return the exponentiated results (e.g.
 #'   hazard ratio). If TRUE this will return both the log estimates and the
 #'   exponentiated estimates
+#' @param ab.studies Character string giving the names of studies in the A vs B
+#'   comparison separated by commas
+#' @param cb.studies Character string giving the names of studies in the C vs B
+#'   comparison separated by commas
 #'
 #' @details Calculate an indirect estimate of the relative effect of two
 #'   treatments using the Bucher method
@@ -255,7 +262,7 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, continuous,
 #'   dataset. study, comparator and treatment must be numbers. For example,
 #'   study = 4, comparator=1, treatment=2 represents the comparison of treatment
 #'   2 vs treatment 1 in study 4
-#'@param direct A data frame containing the results of direct head-to-head
+#' @param direct A data frame containing the results of direct head-to-head
 #'  meta-analysis for the treatment comparisons of interest if only one study is
 #'  available for a given comparison then the result of that study should be
 #'  used. This data frame can be created by using \code{doDirectMeta} and
@@ -264,8 +271,14 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, continuous,
 #'   required. Default is 'all' which will return both fixed effect and random
 #'   effect results. Alternatives are 'Fixed' or 'Random' (Case sensitive) if
 #'   only one set of results is required
-#' @param effect_measure A character string indicating what type of effect
-#'   measure is used, e.g. 'Rate Ratio', 'Odds Ratio' etc.
+#' @param continuous Logical (TRUE/FALSE) indicating whether the effect measure
+#'    is continuous (mean difference) or a ratio measure (odds ratio, hazard
+#'    ratio etc)
+#' @param backtransf Logical indicating whether the results should be
+#'   exponentiated or not. If abTE and cbTE are on the log scale (e.g. log
+#'   hazard ratio) set this to TRUE to return the exponentiated results (e.g.
+#'   hazard ratio). If TRUE this will return both the log estimates and the
+#'   exponentiated estimates
 #'
 #' @details This function performs indirect meta-analysis for all possible
 #'   comparisons in a given data set. This function takes a set of treatment
