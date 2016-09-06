@@ -314,6 +314,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       #Note that the figure height is calculated as number of treatments x 1.1 cm
       figFile = file.path(MTCfigDir, 'AllVsPlacebo.jpg')
       h = nrow(placebo)*1.1
+      h = ifelse(h > 3, h, 3)
       jpeg(
         file = figFile, width = 16, height = h, units = 'cm', res = 300,
         quality = 100
@@ -347,6 +348,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       f = paste0(outcome, ' ', n, 'VsAll.jpg')
       figFile = file.path(MTCfigDir, f)
       h = nrow(tr)*1.1
+      h = ifelse(h > 3, h, 3)
       jpeg(
         file = figFile, width = 16, height = h, units = 'cm', res = 300,
         quality = 100
