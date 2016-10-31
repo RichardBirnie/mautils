@@ -14,16 +14,27 @@ Description: This package provides a collection of helper functions to support
 License: GPL-3
 LazyData: TRUE
 Imports:
+    DBI (>= 0.5-1),
+    dplyr (>= 0.5.0),
     coda (>= 0.18-1),
     gemtc (>= 0.7),
     ggmcmc (>= 0.7.3),
+    ggplot2 (>= 2.1.),
     grid (>= 3.2.3),
+    gtable (>= 0.2.0),
     igraph (>= 1.0.1),
     magrittr (>= 1.5),
     meta (>= 4.3.0),
     plyr (>= 1.8.4),
     tidyverse (>= 1.0.0),
+    readxl (>= 0.1.1),
+    reshape2 (>= 1.4.2),
+    rjags (>= 4-6),
+    rJava (>= 0.9-8)
     scales (>= 0.3.0),
+    stringr (>= 1.1.0),
+    tidyr (>= 0.6.0),
+    xlsxjars (>= 0.6.1),
     xlsx (>= 0.5.7)
 Depends:
     gemtc (>= 0.7)
