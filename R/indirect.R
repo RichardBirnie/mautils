@@ -420,7 +420,7 @@ doBucher = function(comparisons, direct, effectType = 'all',
   df = dplyr::arrange(df, dplyr::desc(Intervention), dplyr::desc(Comparator))
 
   #fix variable types
-  df = rbutils::factorToCharacter(df)
+  df = factorToCharacter(df)
 
   #rearrange the columns into a more report friendly format
   #depending on the effect measure a different set of columns

@@ -25,7 +25,7 @@ runDAcc = function(df, file, test_id, analysis_case = 'Default', ...){
   }
   resFile = file.path(resDir, paste0(test_id, '_', analysis_case, '.xlsx'))
   #save the input data with the results file
-  rbutils::saveXLSX(
+  saveXLSX(
     as.data.frame(df), file = resFile, sheetName = 'Data',
     showNA = FALSE, row.names = FALSE, append = TRUE
   )
@@ -39,18 +39,18 @@ runDAcc = function(df, file, test_id, analysis_case = 'Default', ...){
   daccSummary = reportDACC(dacc)
 
   #save the descriptive results
-  rbutils::saveXLSX(
+  saveXLSX(
     as.data.frame(dacc), file = resFile, sheetName = 'DAccPerStudy',
     showNA = FALSE, row.names = FALSE, append = TRUE
   )
-  rbutils::saveXLSX(
+  saveXLSX(
     as.data.frame(daccSummary), file = resFile, sheetName = 'DAccPerStudyReport',
     showNA = FALSE, row.names = FALSE, append = TRUE
   )
 
   #I-squared
   i2 = i2dacc(df)
-  rbutils::saveXLSX(
+  saveXLSX(
     as.data.frame(i2), file = resFile, sheetName = 'Univariate I2',
     showNA = FALSE, row.names = FALSE, append = TRUE
   )
@@ -75,7 +75,7 @@ runDAcc = function(df, file, test_id, analysis_case = 'Default', ...){
 
   #extract summary for the key parameters and save
   summaryRes = extractSummary(fit.reitsma = fit.r)
-  rbutils::saveXLSX(
+  saveXLSX(
     as.data.frame(summaryRes), file = resFile, sheetName = 'Bivariate',
     showNA = FALSE, row.names = FALSE, append = TRUE
   )

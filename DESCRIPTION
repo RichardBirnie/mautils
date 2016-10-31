@@ -24,7 +24,6 @@ Imports:
     grid (>= 3.2.3),
     scales (>= 0.3.0),
     igraph (>= 1.0.1),
-    rbutils (>= 0.1),
     gemtc (>= 0.7),
     ggmcmc (>= 0.7.3)
 Depends:

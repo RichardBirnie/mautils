@@ -177,11 +177,11 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       dir.create(MTCfigDir, recursive = TRUE)
     }
     #save the treatment codes and the input data with the results file
-    rbutils::saveXLSX(
+    saveXLSX(
       as.data.frame(treatmentID), file = MTCresultsFile, sheetName = 'Code',
       showNA = FALSE, row.names = FALSE, append = TRUE
     )
-    rbutils::saveXLSX(
+    saveXLSX(
       as.data.frame(inputData), file = MTCresultsFile, sheetName = 'Data',
       showNA = FALSE, row.names = FALSE, append = TRUE
     )
@@ -227,7 +227,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         dir.create(rankDir, showWarnings = FALSE, recursive = TRUE)
       }
       rankFile = file.path(rankDir, paste0(outcome, '_', analysis_case, '_ranking.xlsx'))
-      rbutils::saveXLSX(
+      saveXLSX(
         as.data.frame(ranks[2:ncol(ranks)]), file = rankFile, sheetName = 'Ranking',
         showNA = FALSE, row.names = FALSE, append = TRUE
       )
@@ -259,7 +259,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       codaFile = file.path(codaDir, paste0(outcome, '_', analysis_case, '_Coda.csv'))
       write.csv(mtcCoda, file=codaFile, row.names=FALSE, quote=FALSE)
       trFile = file.path(codaDir, paste0(outcome, '_', analysis_case, '_treatments.xlsx'))
-      rbutils::saveXLSX(
+      saveXLSX(
         as.data.frame(treatmentID), file = trFile, sheetName = 'Treatments',
         showNA = FALSE, row.names = FALSE, append = TRUE
       )
@@ -300,7 +300,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         pairwiseResults, toi = placebo_code, treatments = treatmentID,
         intervention = FALSE, reportOrder = report_order
       )
-      rbutils::saveXLSX(
+      saveXLSX(
         as.data.frame(placebo), file = MTCresultsFile, sheetName = 'Placebo',
         showNA = FALSE, row.names = FALSE, append = TRUE
       )
@@ -333,7 +333,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
         intervention = TRUE, reportOrder = report_order
       )
       #ALWAYS APPEND=TRUE OR YOU WILL OVERWRITE THE EXISTING RESULTS
-      rbutils::saveXLSX(
+      saveXLSX(
         as.data.frame(tr), file = MTCresultsFile, sheetName = n, showNA = FALSE,
         row.names = FALSE, append = TRUE
       )
@@ -378,7 +378,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
           dir.create(incDir, showWarnings = FALSE, recursive = TRUE)
         }
         incFile = file.path(incDir, paste0(outcome, '_', analysis_case, '_inconsistency.xlsx'))
-        rbutils::saveXLSX(
+        saveXLSX(
           as.data.frame(nsRes), file = incFile, sheetName = 'Inconsistency', showNA = FALSE,
           row.names = FALSE, append = TRUE
         )
@@ -694,7 +694,7 @@ extractModelFit = function(mtcRes) {
 extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
   #calculate all pairwise effects
   pairwiseResults = calcAllPairs(res, ...)
-  rbutils::saveXLSX(
+  saveXLSX(
     as.data.frame(pairwiseResults), file = resultsFile, sheetName = 'Raw',
     showNA = FALSE, row.names = FALSE, append = TRUE
   )
@@ -703,7 +703,7 @@ extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
   #map treatment names to numbers
   pairwiseResults = extractComparison(pairwiseResults)
   pairwiseResults = nameTreatments(pairwiseResults, ...)
-  rbutils::saveXLSX(
+  saveXLSX(
     as.data.frame(pairwiseResults), file = resultsFile,
     sheetName = 'ProcessedAll', showNA = FALSE,
     row.names = FALSE, append = TRUE
@@ -716,14 +716,14 @@ extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
     reportTab = dplyr::select(reportTab,-matches('Placebo')) #drop the placebo column
   }
   rt = as.data.frame(reportTab, check.names = FALSE)
-  rbutils::saveXLSX(
+  saveXLSX(
     rt, file = resultsFile, sheetName = 'Report', row.names = TRUE,
     showNA = FALSE, append = TRUE
   )
 
   #extract and save the model fit information
   modelFit = extractModelFit(res)
-  rbutils::saveXLSX(
+  saveXLSX(
     modelFit, file = resultsFile, sheetName = 'DIC', showNA = FALSE,
     row.names = TRUE, append = TRUE
   )
