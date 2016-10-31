@@ -14,18 +14,14 @@ Description: This package provides a collection of helper functions to support
 License: GPL-3
 LazyData: TRUE
 Imports:
-    dplyr (>= 0.4.3),
-    tidyr (>= 0.4.1),
-    stringr (>= 1.0.0),
-    readxl (>= 0.1.0),
-    xlsx (>= 0.5.7),
-    meta (>= 4.3.0),
-    ggplot2 (>= 1.0.1),
-    grid (>= 3.2.3),
-    scales (>= 0.3.0),
-    igraph (>= 1.0.1),
     gemtc (>= 0.7),
-    ggmcmc (>= 0.7.3)
+    ggmcmc (>= 0.7.3),
+    grid (>= 3.2.3),
+    igraph (>= 1.0.1),
+    meta (>= 4.3.0),
+    tidyverse (>= 1.0.0),
+    scales (>= 0.3.0),
+    xlsx (>= 0.5.7)
 Depends:
     gemtc (>= 0.7)
 RoxygenNote: 5.0.1
