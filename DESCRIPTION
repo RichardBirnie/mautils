@@ -28,6 +28,7 @@ Imports:
     plyr (>= 1.8.4),
     tidyverse (>= 1.0.0),
     readxl (>= 0.1.1),
+    reshape (>= 0.8.6),
     reshape2 (>= 1.4.2),
     rjags (>= 4-6),
     rJava (>= 0.9-8),
