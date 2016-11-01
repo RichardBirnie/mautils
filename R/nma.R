@@ -116,7 +116,7 @@
 #' @seealso \code{\link[gemtc]{mtc.network}}, \code{\link[gemtc]{mtc.model}},
 #'   \code{\link[gemtc]{mtc.run}}, \code{\link[gemtc]{mtc.run}},
 #'   \code{\link{extractMTCResults}}, \code{\link{plotEstimates}}
-
+#' @export
 runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
                   analysis_set = 'Default', outcome, analysis_case,
                   doFixed = TRUE, doRandom = TRUE, model_type = 'consistency',
@@ -421,6 +421,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
 #' @return A data frame with additional columns
 #'
 #' @seealso \code{\link{calcAllPairs}}, \code{\link{extractMTCResults}}
+#' @export
 extractComparison = function(df) {
   #extract the information of which comparison is on each row from the
   #first column of the winBUGS output and store it in individual columns
@@ -453,6 +454,7 @@ extractComparison = function(df) {
 #' @return The same data frame with the treatment names appended
 #'
 #' @seealso \code{\link{extractComparison}}, \code{\link{calcAllPairs}}, \code{\link{extractMTCResults}}
+#' @export
 nameTreatments = function(results, coding, ...) {
 
   #drop order column from coding. Makes no sense here
@@ -499,6 +501,7 @@ nameTreatments = function(results, coding, ...) {
 #' @return A data frame
 #'
 #' @seealso \code{\link{extractMTCResults}}, \code{\link{nameTreatments}}
+#' @export
 makeTab = function(results, coding, rounding = 2, reportOrder = 'default', ...) {
   #create summary string
   results[,'effect'] = paste0(
@@ -564,6 +567,7 @@ makeTab = function(results, coding, rounding = 2, reportOrder = 'default', ...) 
 #'
 #' @seealso \code{\link[gemtc]{mtc.run}}, \code{\link[gemtc]{relative.effect}}
 #'   \code{\link{extractMTCResults}}, \code{\link{extractModelFit}}
+#' @export
 calcAllPairs = function(mtcRes, expon = FALSE, ...) {
   tid = as.integer(mtcRes$model$network$treatments$id)
   for (t in 1:length(tid)) {
@@ -609,6 +613,7 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
 #' @return A data frame containing the model comparison statistics.
 #'
 #' @seealso \code{\link{extractMTCResults}}, \code{\link[gemtc]{mtc.run}}
+#' @export
 extractModelFit = function(mtcRes) {
   modelSummary = .summariseMTC(mtcRes)
   dic = data.frame(
@@ -691,6 +696,7 @@ extractModelFit = function(mtcRes) {
 #'   \code{\link{nameTreatments}}, \code{\link{makeTab}},
 #'   \code{\link{extractModelFit}}
 #'
+#' @export
 extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
   #calculate all pairwise effects
   pairwiseResults = calcAllPairs(res, ...)
@@ -768,6 +774,7 @@ extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
 #'   specified treatment of interest.
 #'
 #' @seealso \code{\link{extractMTCResults}}
+#' @export
 extractTOI = function(df, treatments, toi, intervention = TRUE,
                       reportOrder = 'default') {
 
@@ -816,6 +823,7 @@ extractTOI = function(df, treatments, toi, intervention = TRUE,
 #'   and the corresponding 95\% confidence interval
 #'
 #' @seealso \code{\link[gemtc]{mtc.nodesplit}}
+#' @export
 extractNodesplit = function(ns.res, treatments, backtransf) {
   #get summary and retrieve direct, indirect and consistency effect estimates
   ns.res = summary(ns.res)
@@ -880,6 +888,7 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
 #'  was done.
 #'
 #' @seealso \code{\link[gemtc]{mtc.run}}
+#' @export
 saveModelCode = function(mtcRes, modelFile) {
   #create some basic descriptive text from the model object
   des = paste0('#Description: ', mtcRes$model$network$description, '\n')
@@ -910,6 +919,7 @@ saveModelCode = function(mtcRes, modelFile) {
 #' @return A data frame
 #'
 #' @seealso \code{\link[gemtc]{rank.probability}}
+#' @export
 extractRanks = function(ranks, treatments) {
   class(ranks) = 'matrix'
   ranks = as.data.frame(ranks)
@@ -950,6 +960,7 @@ extractRanks = function(ranks, treatments) {
 #' }
 #'
 #' @seealso \code{\link[gemtc]{mtc.run}}
+#' @export
 extractCoda = function(mtcResults, summarise=TRUE) {
   #starts with the output from mtc.run
   #extract coda from results object
@@ -979,6 +990,7 @@ extractCoda = function(mtcResults, summarise=TRUE) {
 #'   parameters and the autocorrelation within chains
 #'
 #' @seealso \code{\link[ggmcmc]{ggmcmc}}
+#' @export
 saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
 
   #if there is no directory to save the plot files then create one
@@ -1039,6 +1051,7 @@ saveDiagnostics = function(mtc, directory='./ConvergenceDiagnostics') {
 #'
 #' @seealso \code{\link{extractTOI}}, \code{\link[ggplot2]{geom_point}},
 #'   \code{\link[ggplot2]{geom_errorbarh}}
+#' @export
 plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
                          hiLimit = 'CrI_upper', xlabel = 'Effect Estimate',
                          noEffectLine = 1) {
@@ -1104,6 +1117,7 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
 #' @return A ggplot object which can then be saved using an appropriate graphics
 #'   device, e.g. jpeg, png, pdf etc.
 #' @seealso \code{\link{extractRanks}}, \code{\link[gemtc]{rank.probability}}
+#' @export
 plotRanks = function(ranks) {
   ranks = tidyr::gather(ranks[,2:ncol(ranks)], description, Probability)
   colnames(ranks)[2] = 'Rank'

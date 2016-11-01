@@ -87,7 +87,8 @@ Calculate an indirect estimate of the relative effect of two
  \item \code{n.studies} The number of studies included in the analysis
  \item \code{Studies} The names of the studies included in the analysis
 }
-
-  @seealso \code{\link{doBucher}}
+}
+\seealso{
+\code{\link{doBucher}}
 }
 

@@ -12,6 +12,7 @@
 #'   identifies this analysis. This is used in filenames so keep it short.
 #' @param test_id A character string indicating the identity of the diagnostic
 #'   test
+#' @export
 
 runDAcc = function(df, file, test_id, analysis_case = 'Default', ...){
   #set up folders for the results and figures.
@@ -103,6 +104,7 @@ runDAcc = function(df, file, test_id, analysis_case = 'Default', ...){
 #'   each study for sensitvity, specificity, positive likelihood ratio, negative
 #'   likelihood ratio and diagnostic odds ratio
 #' @seealso \code{\link[mada]{madad}}
+#' @export
 extractDACC = function(des, input){
   dacc = dplyr::data_frame(
     'Sens' = des$sens$sens,
@@ -140,6 +142,7 @@ extractDACC = function(des, input){
 #' @return A data frame summarising the diagnostic accuracy information for each
 #'   study
 #' @seealso \code{extractDACC}, \code{\link[mada]{madad}}
+#' @export
 reportDACC = function(df){
   data_frame(
     'StudyID' = df$StudyID,
@@ -184,6 +187,7 @@ reportDACC = function(df){
 #'   DOR.
 #'
 #' @seealso \code{\link[mada]{reitsma}}, \code{\link[mada]{SummaryPts}}
+#' @export
 extractSummary = function(fit.reitsma) {
   #get summary from reitsma object
   #convert the essential information into a data frame
@@ -241,6 +245,7 @@ extractSummary = function(fit.reitsma) {
 #'   of the parameters.
 #'
 #' @seealso \code{\link[meta]{metaprop}}, \code{\link[meta]{metagen}}
+#' @export
 i2dacc = function(df) {
   #calculate sens, spec etc for each study
   des = mada::madad(df, correction.control = 'single')
@@ -325,6 +330,7 @@ i2dacc = function(df) {
 #'   sensitivity or specificity
 #'
 #' @seealso \code{\link[mada]{forest}} for details of the other arguments
+#' @export
 forestmada2 = function (x, ci, plotci = TRUE, main = "Forest plot", xlab = NULL,
           digits = 2L, snames = NULL, subset = NULL, pch = 15, cex = 1,
           cipoly = NULL, polycol = NA, xlim, ...)
@@ -437,6 +443,7 @@ forestmada2 = function (x, ci, plotci = TRUE, main = "Forest plot", xlab = NULL,
 #'   to allow the user to set the label for the x-axis.
 #'
 #' @seealso \code{\link[mada]{reitsma-class}} for details of the other arguments
+#' @export
 plot.reitsma2 <- function(x, extrapolate = FALSE, plotsumm = TRUE, level = 0.95,
                           ylim = c(0,1), xlim = c(0,1), pch = 1,
                           sroclty = 1, sroclwd = 1,
@@ -507,6 +514,7 @@ plot.reitsma2 <- function(x, extrapolate = FALSE, plotsumm = TRUE, level = 0.95,
 #'   default is FALSE indicating no extrapolation
 #'
 #' @seealso \code{\link[mada]{reitsma-class}}
+#' @export
 plotSROC = function(fit.reitsma, show.data = TRUE, show.prediction = TRUE,
                     summary.legend.pos = 'bottomright',
                     sroc.legend.pos = 'bottomleft', ...) {
