@@ -190,7 +190,7 @@ formatDataToDirectMA = function(input.df, dataType) {
     #rearrange treatment difference data
     if (dataType == 'treatment difference') {
       #set up a temporary data frame
-      df = data_frame(
+      df = dplyr::data_frame(
         StudyName = NA, study = NA, comparator = NA, treatment = NA, diff = NA,
         std.err = NA, NumberAnalysedComparator = NA, NumberAnalysedTreatment = NA,
         ComparatorName = NA, TreatmentName = NA
