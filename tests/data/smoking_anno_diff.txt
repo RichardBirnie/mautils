@@ -1,0 +1,51 @@
+StudyName	NumberAnalysed	TreatmentName	study	treatment	diff	std.err
+Study 01	140	No Contact	1	1		0.344593527
+Study 01	140	Individual Counseling	1	3	1.051293027	0.413243231
+Study 01	138	Group Counseling	1	4	0.128527575	0.475980251
+Study 02	78	Self-help	2	2		0.325322093
+Study 02	85	Individual Counseling	2	3	0.001244555	0.450406958
+Study 02	170	Group Counseling	2	4	0.225333286	0.383939346
+Study 03	702	No Contact	3	1		
+Study 03	694	Self-help	3	2	-0.015964936	0.169915046
+Study 04	671	No Contact	4	1		
+Study 04	535	Self-help	4	2	0.393504544	0.326575446
+Study 05	116	No Contact	5	1		
+Study 05	146	Self-help	5	2	0.702941578	0.441321713
+Study 06	731	No Contact	6	1		
+Study 06	714	Individual Counseling	6	3	2.202289286	0.143043865
+Study 07	106	No Contact	7	1		
+Study 07	205	Individual Counseling	7	3	0.870353637	0.791093254
+Study 08	549	No Contact	8	1		
+Study 08	1561	Individual Counseling	8	3	0.415648522	0.155732898
+Study 09	33	No Contact	9	1		
+Study 09	48	Individual Counseling	9	3	16.11392405	1.46984025
+Study 10	100	No Contact	10	1		
+Study 10	98	Individual Counseling	10	3	2.705393275	0.625160819
+Study 11	31	No Contact	11	1		
+Study 11	95	Individual Counseling	11	3	2.425187415	1.04225123
+Study 12	39	No Contact	12	1		
+Study 12	77	Individual Counseling	12	3	0.443616874	0.521976909
+Study 13	1107	No Contact	13	1		
+Study 13	1031	Individual Counseling	13	3	0.464590896	0.141746153
+Study 14	187	No Contact	14	1		
+Study 14	504	Individual Counseling	14	3	-0.155810431	0.321223045
+Study 15	584	No Contact	15	1		
+Study 15	675	Individual Counseling	15	3	-0.239970162	0.173656434
+Study 16	1177	No Contact	16	1		
+Study 16	888	Individual Counseling	16	3	0.038956007	0.187384204
+Study 17	642	No Contact	17	1		
+Study 17	761	Individual Counseling	17	3	0.390412268	0.168017708
+Study 18	62	No Contact	18	1		
+Study 18	90	Individual Counseling	18	3	0.10633565	0.595599682
+Study 19	234	No Contact	19	1		
+Study 19	237	Individual Counseling	19	3	0.583398287	0.298346728
+Study 20	20	No Contact	20	1		
+Study 20	20	Group Counseling	20	4	33.86956522	1.49699705
+Study 21	49	Self-help	21	2		
+Study 21	43	Individual Counseling	21	3	-0.151684587	0.428975286
+Study 22	66	Self-help	22	2		
+Study 22	127	Group Counseling	22	4	1.043486306	0.448979522
+Study 23	76	Individual Counseling	23	3		
+Study 23	74	Group Counseling	23	4	0.680724661	0.409239358
+Study 24	55	Individual Counseling	24	3		
+Study 24	26	Group Counseling	24	4	-0.405465108	0.713906041

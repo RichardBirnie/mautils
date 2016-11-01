@@ -1,0 +1,51 @@
+StudyName	TreatmentName	study	treatment	responders	sampleSize
+Study 01	No Contact	1	1	9	140
+Study 01	Individual Counseling	1	3	23	140
+Study 01	Group Counseling	1	4	10	138
+Study 02	Self-help	2	2	11	78
+Study 02	Individual Counseling	2	3	12	85
+Study 02	Group Counseling	2	4	29	170
+Study 03	No Contact	3	1	79	702
+Study 03	Self-help	3	2	77	694
+Study 04	No Contact	4	1	18	671
+Study 04	Self-help	4	2	21	535
+Study 05	No Contact	5	1	8	116
+Study 05	Self-help	5	2	19	146
+Study 06	No Contact	6	1	75	731
+Study 06	Individual Counseling	6	3	363	714
+Study 07	No Contact	7	1	2	106
+Study 07	Individual Counseling	7	3	9	205
+Study 08	No Contact	8	1	58	549
+Study 08	Individual Counseling	8	3	237	1561
+Study 09	No Contact	9	1	0	33
+Study 09	Individual Counseling	9	3	9	48
+Study 10	No Contact	10	1	3	100
+Study 10	Individual Counseling	10	3	31	98
+Study 11	No Contact	11	1	1	31
+Study 11	Individual Counseling	11	3	26	95
+Study 12	No Contact	12	1	6	39
+Study 12	Individual Counseling	12	3	17	77
+Study 13	No Contact	13	1	95	1107
+Study 13	Individual Counseling	13	3	134	1031
+Study 14	No Contact	14	1	15	187
+Study 14	Individual Counseling	14	3	35	504
+Study 15	No Contact	15	1	78	584
+Study 15	Individual Counseling	15	3	73	675
+Study 16	No Contact	16	1	69	1177
+Study 16	Individual Counseling	16	3	54	888
+Study 17	No Contact	17	1	64	642
+Study 17	Individual Counseling	17	3	107	761
+Study 18	No Contact	18	1	5	62
+Study 18	Individual Counseling	18	3	8	90
+Study 19	No Contact	19	1	20	234
+Study 19	Individual Counseling	19	3	34	237
+Study 20	No Contact	20	1	0	20
+Study 20	Group Counseling	20	4	9	20
+Study 21	Self-help	21	2	20	49
+Study 21	Individual Counseling	21	3	16	43
+Study 22	Self-help	22	2	7	66
+Study 22	Group Counseling	22	4	32	127
+Study 23	Individual Counseling	23	3	12	76
+Study 23	Group Counseling	23	4	20	74
+Study 24	Individual Counseling	24	3	9	55
+Study 24	Group Counseling	24	4	3	26
