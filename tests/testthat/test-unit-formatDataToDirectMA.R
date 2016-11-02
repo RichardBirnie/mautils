@@ -10,7 +10,7 @@ test_that('Annotated binary arm level data is correctly reformatted',{
   expect_that(input, equals(dget('../data/smoking_anno_arm_direct.txt')))
 })
 
-test_that('Annotated log OR data is correctly reformatted',{
+test_that('Annotated binary contrast data is correctly reformatted',{
   #call format data function on test data
   input = formatDataToDirectMA(input.df = read.table(
     file = '../data/smoking_anno_diff.txt', header = TRUE, sep = '\t'
