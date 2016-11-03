@@ -1,0 +1,8 @@
+structure(list(id = c(4L, 3L, 2L, 1L), description = c("Group Counseling", 
+"Individual Counseling", "Self-help", "No Contact"), Rank1 = c(0.672853333333333, 
+0.32714, 6.66666666666667e-06, 0), Rank2 = c(0.3264, 0.672813333333333, 
+0.00078, 6.66666666666667e-06), Rank3 = c(0.00074, 4.66666666666667e-05, 
+0.96278, 0.0364333333333333), Rank4 = c(6.66666666666667e-06, 
+0, 0.0364333333333333, 0.96356)), class = "data.frame", row.names = c(NA, 
+-4L), .Names = c("id", "description", "Rank1", "Rank2", "Rank3", 
+"Rank4"))

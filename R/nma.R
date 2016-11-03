@@ -221,7 +221,7 @@ runMTC = function(df, file, data_type, treatmentID, effect_measure, toi,
       r = gemtc::rank.probability(mtcResults,
                                   preferredDirection = ifelse(higher_better, 1,-1)
                                   )
-      ranks = extractRanks(ranks = r, treatments = treatments)
+      ranks = extractRanks(ranks = r, treatments = mtcResults$model$network$treatments)
       rankDir = file.path(MTCresDir, 'Ranking')
       if (!dir.exists(rankDir)) {
         dir.create(rankDir, showWarnings = FALSE, recursive = TRUE)
@@ -586,7 +586,7 @@ calcAllPairs = function(mtcRes, expon = FALSE, ...) {
     if (t == 1) {
       output = out
     } else {
-      output = suppressWarnings(bind_rows(output, out))
+      output = suppressWarnings(dplyr::bind_rows(output, out))
     }
   }
 
@@ -921,10 +921,13 @@ saveModelCode = function(mtcRes, modelFile) {
 #' @seealso \code{\link[gemtc]{rank.probability}}
 #' @export
 extractRanks = function(ranks, treatments) {
+  treatments$id = as.integer(treatments$id)
+
   class(ranks) = 'matrix'
   ranks = as.data.frame(ranks)
   colnames(ranks) = paste0('Rank', 1:ncol(ranks))
   ranks$id = as.integer(rownames(ranks))
+
   ranks = dplyr::left_join(treatments[,1:2], ranks, by = 'id')
   ranks = dplyr::arrange(ranks, dplyr::desc(Rank1))
 }
