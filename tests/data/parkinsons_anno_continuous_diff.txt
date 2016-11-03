@@ -1,0 +1,16 @@
+StudyName	NumberAnalysed	TreatmentName	study	treatment	diff	std.err
+Study1	54	Placebo	1	1		
+Study1	95	Treatment3	1	3	-0.31	0.668
+Study2	172	Placebo	2	1		
+Study2	173	Treatment2	2	2	-1.70	0.383
+Study3	76	Placebo	3	1		0.505
+Study3	71	Treatment2	3	2	-2.30	0.718
+Study3	81	Treatment4	3	4	-0.90	0.695
+Study4	128	Treatment3	4	3		
+Study4	72	Treatment4	4	4	-0.35	0.442
+Study5	80	Treatment3	5	3		
+Study5	46	Treatment4	5	4	0.55	0.555
+Study6	137	Treatment4	6	4		
+Study6	131	Treatment5	6	5	-0.30	0.274
+Study7	154	Treatment4	7	4		
+Study7	143	Treatment5	7	5	-0.30	0.320

@@ -77,6 +77,7 @@
 #'
 #' @seealso \code{\link{formatDataToDirectMA}}, \code{\link{doDirectMeta}},
 #'   \code{\link{drawForest}}, \code{\link{extractDirectRes}}
+#' @export
 runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome, effect_measure,
                      back_calc = FALSE, forest_plot = TRUE,
                      show_fixed = TRUE, show_random = TRUE,
@@ -176,6 +177,7 @@ runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome,
 #' @return A data frame
 #'
 #' @seealso \code{\link[gemtc]{mtc.network}}
+#' @export
 formatDataToDirectMA = function(input.df, dataType) {
   #get a list of unique study IDs and count how many
   studyID = unique(input.df$study)
@@ -190,7 +192,7 @@ formatDataToDirectMA = function(input.df, dataType) {
     #rearrange treatment difference data
     if (dataType == 'treatment difference') {
       #set up a temporary data frame
-      df = data_frame(
+      df = dplyr::data_frame(
         StudyName = NA, study = NA, comparator = NA, treatment = NA, diff = NA,
         std.err = NA, NumberAnalysedComparator = NA, NumberAnalysedTreatment = NA,
         ComparatorName = NA, TreatmentName = NA
@@ -306,6 +308,7 @@ formatDataToDirectMA = function(input.df, dataType) {
 #'
 #' @seealso \code{\link{formatDataToDirectMA}}, \code{\link[meta]{metagen}},
 #'   \code{\link[meta]{metabin}}
+#' @export
 doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method =
                           'MH') {
   #create a list object to store the results
@@ -465,6 +468,7 @@ doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method =
 #' }
 #'
 #' @seealso \code{\link[meta]{metagen}}, \code{\link[meta]{metabin}}
+#' @export
 extractDirectRes = function(metaRes, effect, intervention = 'Int',
                             comparator = 'Con', interventionCode = NA,
                             comparatorCode = NA, backtransf = FALSE) {
@@ -541,6 +545,7 @@ extractDirectRes = function(metaRes, effect, intervention = 'Int',
 #'   @return NULL
 #'
 #' @seealso \code{\link[meta]{forest}}
+#' @export
 drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
 
   #work out sensible values for the x-axis limits

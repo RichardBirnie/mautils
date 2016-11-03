@@ -1,0 +1,20 @@
+structure(list(Effect = c("Odds Ratio", "Odds Ratio"), Intervention = c("Individual Counseling", 
+"Individual Counseling"), Comparator = c("No Contact", "No Contact"
+), TE = c(2.06774951938804, 2.11608653786546), lower = c(1.84753570973306, 
+1.29776078604435), upper = c(2.31421133156189, 3.45042189892644
+), n.studies = c(15L, 15L), studies = c("Study 01, Study 06, Study 07, Study 08, Study 09, Study 10, Study 11, Study 12, Study 13, Study 14, Study 15, Study 16, Study 17, Study 18, Study 19", 
+"Study 01, Study 06, Study 07, Study 08, Study 09, Study 10, Study 11, Study 12, Study 13, Study 14, Study 15, Study 16, Study 17, Study 18, Study 19"
+), Model = c("Fixed", "Random"), InterventionCode = c(3L, 3L), 
+    ComparatorCode = c(1L, 1L), log.TE = c(0.726460827157518, 
+    0.749568410071641), seTE.log = c(0.0574541806451998, 0.249457697639023
+    ), log.lower = c(0.613852702331669, 0.260640307032873), log.upper = c(0.839068951983368, 
+    1.23849651311041), z = c(12.6441769597878, 3.00479166273835
+    ), p = c(1.20479538814034e-36, 0.00265762818689886), level = c(0.95, 
+    0.95), Tau.sq = c(0.84932100935366, 0.84932100935366), method.tau = c("DL", 
+    "DL"), I.sq.TE = c(0.925016052408695, 0.925016052408695), 
+    I.sq.lower = c(0.892589775586128, 0.892589775586128), I.sq.upper = c(0.947653098882742, 
+    0.947653098882742)), .Names = c("Effect", "Intervention", 
+"Comparator", "TE", "lower", "upper", "n.studies", "studies", 
+"Model", "InterventionCode", "ComparatorCode", "log.TE", "seTE.log", 
+"log.lower", "log.upper", "z", "p", "level", "Tau.sq", "method.tau", 
+"I.sq.TE", "I.sq.lower", "I.sq.upper"), class = "data.frame", row.names = 1:2)

@@ -61,6 +61,7 @@
 #'   provides a detailed description of the columns in the output
 #'
 #' @seealso \code{\link{doBucher}}, \code{\link{runDirect}}
+#' @export
 runIndirect = function(df, data_type, direct_results, continuous=FALSE,
                        effect_type = 'all', back_calc = FALSE,
                        order_treatments = NA) {
@@ -207,7 +208,8 @@ runIndirect = function(df, data_type, direct_results, continuous=FALSE,
 #'  \item \code{Studies} The names of the studies included in the analysis
 #' }
 #'
-#'   @seealso \code{\link{doBucher}}
+#' @seealso \code{\link{doBucher}}
+#' @export
 
 bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, continuous,
                   intervention, comparator, common, backtransf = FALSE,
@@ -315,6 +317,7 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, continuous,
 #' }
 #' @seealso \code{\link{bucher}}, \code{\link{doDirectMeta}},
 #'   \code{\link{extractDirectRes}}
+#' @export
 
 doBucher = function(comparisons, direct, effectType = 'all',
                     continuous, backtransf = FALSE) {

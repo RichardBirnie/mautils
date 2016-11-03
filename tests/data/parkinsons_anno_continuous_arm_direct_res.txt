@@ -1,0 +1,11 @@
+structure(list(Effect = "Mean Difference", Intervention = "Treatment3", 
+    Comparator = "Placebo", TE = -0.31, lower = -1.61943165426181, 
+    upper = 0.999431654261814, n.studies = 1L, studies = "Study1", 
+    Model = NA, InterventionCode = 3L, ComparatorCode = 1L, seTE = 0.668089650927488, 
+    z = -0.464009582500846, p = 0.642640880212665, level = 0.95, 
+    Tau.sq = 0, method.tau = "DL", I.sq.TE = NaN, I.sq.lower = NaN, 
+    I.sq.upper = NaN), row.names = c(NA, -1L), class = "data.frame", .Names = c("Effect", 
+"Intervention", "Comparator", "TE", "lower", "upper", "n.studies", 
+"studies", "Model", "InterventionCode", "ComparatorCode", "seTE", 
+"z", "p", "level", "Tau.sq", "method.tau", "I.sq.TE", "I.sq.lower", 
+"I.sq.upper"))
