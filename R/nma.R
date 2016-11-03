@@ -459,6 +459,7 @@ nameTreatments = function(results, coding, ...) {
 
   #drop order column from coding. Makes no sense here
   coding = coding[,1:2]
+  coding$id = as.integer(coding$id)
 
   #match intervention codes to their names
   results = dplyr::right_join(coding, results, by = c('id' = 'tB'))
