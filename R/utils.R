@@ -88,6 +88,7 @@ capwords <- function(s, strict = FALSE) {
 #' overwrite=FALSE)
 #'
 #' @seealso \code{\link[xlsx]{write.xlsx}}
+#' @export
 saveXLSX = function(x, file, sheetName = "Sheet1", col.names = TRUE, row.names = FALSE,
                     append = FALSE, showNA = FALSE, overwrite = TRUE) {
 
