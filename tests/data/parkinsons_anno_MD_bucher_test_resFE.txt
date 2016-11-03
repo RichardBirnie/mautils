@@ -1,0 +1,10 @@
+structure(list(Intervention = structure(1L, .Label = "Treatment4", class = "factor"), 
+    Comparator = structure(NA_integer_, .Label = "Treatment4", class = "factor"), 
+    Common = structure(1L, .Label = "Treatment3", class = "factor"), 
+    Effect = structure(1L, .Label = "Mean Difference", class = "factor"), 
+    Model = structure(1L, .Label = c("Fixed", "Random"), class = "factor"), 
+    TE.ind = NA_real_, lower.ind = NA_real_, upper.ind = NA_real_, 
+    se.TE.ind = NA_real_, n.studies = 3L, Studies = structure(1L, .Label = "Study4, Study5, NA", class = "factor")), .Names = c("Intervention", 
+"Comparator", "Common", "Effect", "Model", "TE.ind", "lower.ind", 
+"upper.ind", "se.TE.ind", "n.studies", "Studies"), row.names = c(NA, 
+-1L), class = "data.frame")

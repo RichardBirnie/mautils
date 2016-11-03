@@ -1,0 +1,12 @@
+structure(list(Intervention = structure(2L, .Label = c("Group Counseling", 
+"Individual Counseling"), class = "factor"), Comparator = structure(1L, .Label = c("Group Counseling", 
+"Individual Counseling"), class = "factor"), Common = structure(1L, .Label = "No Contact", class = "factor"), 
+    Effect = structure(1L, .Label = "Odds Ratio", class = "factor"), 
+    Model = structure(1L, .Label = c("Fixed", "Random"), class = "factor"), 
+    log.TE.ind = -0.0546855000000001, log.lower.ind = -0.852645307796391, 
+    log.upper.ind = 0.743274307796391, se.log.TE.ind = 0.407122350916526, 
+    TE.ind = 0.946782864345964, lower.ind = 0.42628578202994, 
+    upper.ind = 2.10280950012119, n.studies = 16L, Studies = structure(1L, .Label = "Study 01, Study 06, Study 07, Study 08, Study 09, Study 10, Study 11, Study 12, Study 13, Study 14, Study 15, Study 16, Study 17, Study 18, Study 19, Study 20", class = "factor")), .Names = c("Intervention", 
+"Comparator", "Common", "Effect", "Model", "log.TE.ind", "log.lower.ind", 
+"log.upper.ind", "se.log.TE.ind", "TE.ind", "lower.ind", "upper.ind", 
+"n.studies", "Studies"), row.names = c(NA, -1L), class = "data.frame")
