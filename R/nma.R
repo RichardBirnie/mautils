@@ -870,9 +870,9 @@ extractNodesplit = function(ns.res, treatments, backtransf) {
   colnames(nsRes)[16:17] = c('Comparator', 'Intervention')
   #Rearrange the column order and return the result
   dplyr::select(
-    nsRes, 2:1, 17:16, starts_with('dir'),
-    starts_with('ind'), starts_with('cons'),
-    contains('IF'), p
+    nsRes, 2:1, 17:16, dplyr::starts_with('dir'),
+    dplyr::starts_with('ind'), dplyr::starts_with('cons'),
+    dplyr::contains('IF'), p
   )
 }
 

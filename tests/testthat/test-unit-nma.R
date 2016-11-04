@@ -19,7 +19,7 @@ test_that('Ranking of NMA results is correct', {
   expect_equal(ranks, dget('../data/smoking_anno_arm_nma_resFE_ranks.txt'))
 })
 
-test_that('Code is extracted correctly',{
+test_that('Coda is extracted correctly',{
   #load test data. One example should be sufficient.
   #This should behave the same for any mtc.result object
   fe_res = readRDS('../data/smoking_anno_arm_nma_resFE.RData')
@@ -87,6 +87,31 @@ test_that('Extraction and formatting of NMA results is correct',{
   #check ordering of output
   expect_true(all(rownames(tab) == rnames))
   expect_true(all(colnames(tab) == rnames))
+
+  #test extraction of reference treatment
+  toi = extractTOI(
+    pairwise_res, toi = 1, treatments = treatments,
+    intervention = FALSE, reportOrder = 'default'
+  )
+  #check class and content of the result
+  expect_is(toi, 'data.frame')
+  expect_true(all(toi$TreatmentA == 1))
+  expect_false(any(toi$TreatmentB == 1))
+  expect_true(all(toi$TreatmentB == treatments$id[2:4]))
+  #test intervention argument
+  toi = extractTOI(
+    pairwise_res, toi = 1, treatments = treatments,
+    intervention = TRUE, reportOrder = 'default'
+  )
+  expect_is(toi, 'data.frame')
+  expect_true(all(toi$TreatmentB == 1))
+  expect_false(any(toi$TreatmentA == 1))
+  #test custom ordering
+  toi = extractTOI(
+    pairwise_res, toi = 1, treatments = treatments,
+    intervention = FALSE, reportOrder = 'custom'
+  )
+  expect_true(all(toi$TreatmentB == treatments$Order[1:3]))
 })
 
 test_that('Model comparison stats are correctly extracted',{
@@ -107,3 +132,12 @@ test_that('Model comparison stats are correctly extracted',{
   expect_false(all(is.na(re_fit[,2])))
 })
 
+test_that('Nodesplitting results are correctly extracted',{
+  res = readRDS('../data/smoking_anno_arm_nodesplit.RData')
+  treatments = dget('../data/smoking_anno_arm_treatments.txt')
+  nsRes = extractNodesplit(res, treatments = treatments[,1:2], backtransf = TRUE)
+  expect_is(nsRes, 'data.frame')
+  expect_equal(nsRes, dget('../data/smoking_anno_arm_ns_res.txt'))
+
+  nsRes = extractNodesplit(res, treatments = treatments[,1:2], backtransf = FALSE)
+})

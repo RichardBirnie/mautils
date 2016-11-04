@@ -1,0 +1,8 @@
+structure(list(t2 = 2, t1 = 1, Intervention = "Self-help", Comparator = "No Contact", 
+    dir.pe = 1.4, dir.ci.l = 0.525, dir.ci.u = 3.802, ind.pe = 1.96, 
+    ind.ci.l = 0.631, ind.ci.u = 6.244, cons.pe = 1.613, cons.ci.l = 0.777, 
+    cons.ci.u = 3.422, IF = 0.714, IF.lower.ci = 0.157, IF.upper.ci = 3.25, 
+    p = 0.653), class = "data.frame", row.names = c(NA, -1L), .Names = c("t2", 
+"t1", "Intervention", "Comparator", "dir.pe", "dir.ci.l", "dir.ci.u", 
+"ind.pe", "ind.ci.l", "ind.ci.u", "cons.pe", "cons.ci.l", "cons.ci.u", 
+"IF", "IF.lower.ci", "IF.upper.ci", "p"))

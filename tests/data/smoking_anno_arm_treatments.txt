@@ -1,0 +1,5 @@
+structure(list(id = c(1, 2, 3, 4), description = c("No Contact", 
+"Self-help", "Individual Counseling", "Group Counseling"), Order = c(1, 
+2, 3, 4), shortname = c("No Contact", "Self-help", "Individual", 
+"Group")), class = "data.frame", row.names = c(NA, -4L), .Names = c("id", 
+"description", "Order", "shortname"))
