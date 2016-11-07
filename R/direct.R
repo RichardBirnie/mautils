@@ -290,92 +290,87 @@ formatDataToDirectMA = function(input.df, dataType) {
 #'   \code{\link[meta]{metabin}}
 #' @export
 doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method =
-                          'MH') {
-  #create a list object to store the results
-  resList = list()
-
+                          'MH', ...) {
   #identify the set of treatment comparisons present in the data
-  com = dplyr::distinct(df[,3:4])
-  comparisons = data.frame(comparator = NA, treatment = NA)
+  com = dplyr::distinct(df[,3:4]) %>%
+    tidyr::unite(contrast, comparator, treatment, remove = FALSE)
+  comparisons = data.frame(contrast = NA, comparator = 0, treatment = 0)
   for (i in 1:nrow(com)) {
-    if (i == 1) {
-      comparisons = com[i,]
-    } else {
-      #check if we have already have this comparison either way around
-      f_test = dplyr::filter(
-        comparisons, comparator == com$comparator[i],
-        treatment == comparisons$treatment[i]
-      ) %>% nrow()
-      r_test = dplyr::filter(comparisons, comparator == com$treatment[i],
-                             treatment == com$comparator[i]) %>% nrow()
-      #Only add this contrast to the comparison set if it is not already
-      #included in either orientation
-      if (f_test == 0 & r_test == 0) {
-        comparisons[nrow(comparisons) + 1,] = com[i,]
-      }
+    if (!com$contrast[i] %in% comparisons$contrast &&
+        !str_reverse(com$contrast[i]) %in% comparisons$contrast) {
+      comparisons[i,] = com[i,]
     }
   }
-
+  comparisons = comparisons %>% dplyr::filter(complete.cases(.))
   for (i in 1:nrow(comparisons)) {
-    #get data for the first comparison
-    comp = dplyr::filter(df, comparator == comparisons$comparator[i],
-                         treatment == comparisons$treatment[i])
-    #check for studies that report the inverse comparison
+    d = dplyr::filter(df, comparator == comparisons$comparator[i],
+                      treatment == comparisons$treatment[i])
     inv_comp = dplyr::filter(df, comparator == comparisons$treatment[i],
                              treatment == comparisons$comparator[i])
-
-    #run the analysis for different data types
-    if (dataType == 'treatment difference') {
-      #if there are any studies reporting the inverse of the required comparison
-      #then flip these to give the preferred comparison e.g. flip B vs A to give A vs B
-      if (nrow(inv_comp) > 0) {
-        inv_comp$diff = -inv_comp$diff
-        inv_comp[, c('comparator', 'treatment')] = inv_comp[, c('treatment', 'comparator')]
-        inv_comp[, c('NumberAnalysedComparator', 'NumberAnalysedTreatment')] = inv_comp[, c('NumberAnalysedTreatment', 'NumberAnalysedComparator')]
-        inv_comp[, c('ComparatorName', 'TreatmentName')] = inv_comp[, c('TreatmentName', 'ComparatorName')]
-        comp = bind_rows(comp, inv_comp)
-      }
-
-      #Generic inverse variance method for treatment differences
-      #backtransf=TRUE converts log effect estimates (e.g log OR) back to linear scale
-      directRes = meta::metagen(
-        TE = comp$diff, seTE = comp$std.err,sm = effectCode, backtransf = backtransf,
-        studlab = comp$StudyName, n.e = comp$NumberAnalysedTreatment,
-        n.c = comp$NumberAnalysedComparator, label.e = comp$TreatmentName,
-        label.c = comp$ComparatorName
-      )
+    if (nrow(inv_comp) > 0) {
+      inv_comp$diff = -inv_comp$diff
+      inv_comp[, c('comparator', 'treatment')] = inv_comp[, c('treatment', 'comparator')]
+      inv_comp[, c('NumberAnalysedComparator', 'NumberAnalysedTreatment')] = inv_comp[, c('NumberAnalysedTreatment', 'NumberAnalysedComparator')]
+      inv_comp[, c('ComparatorName', 'TreatmentName')] = inv_comp[, c('TreatmentName', 'ComparatorName')]
+      d = dplyr::bind_rows(d, inv_comp)
     }
-    if (dataType == 'binary') {
-      #Analysis of binary data provided as n/N
-      directRes = meta::metabin(
-        event.e = comp$NumberEventsTreatment, n.e = comp$NumberAnalysedTreatment,
-        event.c = comp$NumberEventsComparator, n.c = comp$NumberAnalysedComparator,
-        sm = effectCode, backtransf = backtransf, studlab = comp$StudyName,
-        label.e = comp$TreatmentName, label.c = comp$ComparatorName,
-        method = ifelse(nrow(comp) > 1, method, "Inverse")
-      )
-    }
-    if (dataType == 'continuous') {
-      #Analysis of continuous data provided as Mean and SD
-      directRes = meta::metacont(
-        n.e = comp$NumberAnalysedTreatment, mean.e = comp$MeanTreatment, sd.e = comp$SDTreatment,
-        n.c = comp$NumberAnalysedComparator, mean.c = comp$MeanComparator, sd.c = comp$SDComparator,
-        sm = effectCode, studlab = comp$StudyName, label.e = comp$TreatmentName,
-        label.c = comp$ComparatorName
-      )
-    }
-    #add the treatment codes to the results object. These will be needed later
-    directRes$e.code = comparisons$treatment[i]
-    directRes$c.code = comparisons$comparator[i]
-
-    #compile the results into a list
-    if (length(resList) == 0) {
-      resList[[1]] = directRes
+    if (i == 1) {
+      comp = d
     } else {
-      resList[[length(resList) + 1]] = directRes
+      comp = dplyr::bind_rows(comp, d)
     }
+
   }
-  return(resList)
+  comp = comp %>%
+    #add a column that defines the comparisons present in the dataset
+    #group dataset by treatment comparison
+    #nest the data. Produces a data frame with one row per treament comparison
+    #"data" column is a list of data.frames. One per treatment comparison
+    #map combined with map_meta applies the appropriate meta-analysis function from
+    #the meta package according to the data_type argument
+    tidyr::unite(comparison, comparator, treatment, remove = FALSE) %>%
+    dplyr::group_by(comparison) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(
+      metaRes = purrr::map(
+        data, map_meta, data_type = dataType, method =
+          method, effectCode = effectCode, backtransf = backtransf
+      )
+    )
+  return(comp$metaRes)
+}
+
+
+map_meta = function(df, data_type, method, effectCode, backtransf, ...) {
+  if (data_type == 'continuous') {
+    directRes = meta::metacont(
+      n.e = df$NumberAnalysedTreatment, mean.e = df$MeanTreatment, sd.e = df$SDTreatment,
+      n.c = df$NumberAnalysedComparator, mean.c = df$MeanComparator, sd.c = df$SDComparator,
+      sm = effectCode, studlab = df$StudyName, label.e = df$TreatmentName,
+      label.c = df$ComparatorName
+    )
+  }
+  if (data_type == 'binary') {
+    directRes = meta::metabin(
+      event.e = df$NumberEventsTreatment, n.e = df$NumberAnalysedTreatment,
+      event.c = df$NumberEventsComparator, n.c = df$NumberAnalysedComparator,
+      sm = effectCode, backtransf = backtransf, studlab = df$StudyName,
+      label.e = df$TreatmentName, label.c = df$ComparatorName,
+      method = ifelse(nrow(df) > 1, method, "Inverse")
+    )
+  }
+  if (data_type == 'treatment difference') {
+    directRes = meta::metagen(
+      TE = df$diff, seTE = df$std.err,sm = effectCode, backtransf = backtransf,
+      studlab = df$StudyName, n.e = df$NumberAnalysedTreatment,
+      n.c = df$NumberAnalysedComparator, label.e = df$TreatmentName,
+      label.c = df$ComparatorName
+    )
+  }
+
+  directRes$e.code = df$treatment[1]
+  directRes$c.code = df$comparator[1]
+  directRes
 }
 
 .backtransform = function(df) {

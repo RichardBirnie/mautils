@@ -4,7 +4,8 @@
 \alias{doDirectMeta}
 \title{Perform multiple direct head to head meta-analyses from a single data frame}
 \usage{
-doDirectMeta(df, effectCode, dataType, backtransf = FALSE, method = "MH")
+doDirectMeta(df, effectCode, dataType, backtransf = FALSE, method = "MH",
+  ...)
 }
 \arguments{
 \item{df}{A data frame as returned by \code{formatDataToDirectMA}}

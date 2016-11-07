@@ -34,6 +34,13 @@ capwords <- function(s, strict = FALSE) {
   sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
 }
 
+#' Simple function to reverse each string in a character vector
+#'
+#' @param x A character vector
+#'
+#' @details Takes a vector of character strings and returns a new vector with element reversed, e.g. 'abc' becomes 'cba'
+str_reverse <- function(x){ strsplit(x, NULL) %>% lapply(rev) %>% sapply(paste, collapse="") }
+
 #' A simple wrapper around \code{write.xlsx} from the \code{xlsx} package
 #'
 #' @param x A \code{data.frame} to be saved as a single sheet in an excel file

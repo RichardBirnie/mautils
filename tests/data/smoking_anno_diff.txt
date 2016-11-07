@@ -9,8 +9,8 @@ Study 03	702	No Contact	3	1
 Study 03	694	Self-help	3	2	-0.015964936	0.169915046
 Study 04	671	No Contact	4	1		
 Study 04	535	Self-help	4	2	0.393504544	0.326575446
-Study 05	116	No Contact	5	1		
-Study 05	146	Self-help	5	2	0.702941578	0.441321713
+Study 05	146	Self-help	5	2		
+Study 05	116	No Contact	5	1	-0.702941578	0.441321713
 Study 06	731	No Contact	6	1		
 Study 06	714	Individual Counseling	6	3	2.202289286	0.143043865
 Study 07	106	No Contact	7	1		
