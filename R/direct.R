@@ -179,7 +179,10 @@ runDirect = function(df, treatments=NULL, file, data_type, effect_code, outcome,
 #' @seealso \code{\link[gemtc]{mtc.network}}
 #' @export
 formatDataToDirectMA = function(input.df, dataType) {
-  #get a list of unique study IDs and count how many
+
+  #if data is treatment difference then change column name for convenience
+  if(dataType == 'treatment difference') {colnames(input.df)[2] = 'sampleSize'}
+  #get a list of unique study IDs
   studyID = unique(input.df$study)
 
   for (s in studyID) {
@@ -189,85 +192,62 @@ formatDataToDirectMA = function(input.df, dataType) {
     #identify the set of all possible pairwise comparisons in this study
     comparisons = combn(study$treatment, 2)
 
-    #rearrange treatment difference data
-    if (dataType == 'treatment difference') {
-      #set up a temporary data frame
-      df = dplyr::data_frame(
-        StudyName = NA, study = NA, comparator = NA, treatment = NA, diff = NA,
-        std.err = NA, NumberAnalysedComparator = NA, NumberAnalysedTreatment = NA,
-        ComparatorName = NA, TreatmentName = NA
-      )
+    df = dplyr::data_frame(
+      StudyName = NA, study = NA, comparator = NA, treatment = NA,
+      NumberAnalysedComparator = NA, NumberAnalysedTreatment = NA,
+      ComparatorName = NA, TreatmentName = NA
+    )
 
-      #loop through the set of comparisons and rearrange the data
-      for (i in 1:ncol(comparisons)) {
-        comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
-
-        #only report the direct comparisons as reported in the data
-        if (any(is.na(comp$diff))) {
-          df[i,'StudyName'] = as.character(comp$StudyName[1])
-          df[i,'study'] = as.integer(s)
-          df[i,'treatment'] = as.integer(comp$treatment[2])
-          df[i,'comparator'] = as.integer(comp$treatment[1])
-          df[i,'diff'] = comp$diff[2]
-          df[i,'std.err'] = comp$std.err[2]
-          df[i,'NumberAnalysedComparator'] = as.integer(comp$NumberAnalysed[1])
-          df[i,'NumberAnalysedTreatment'] = as.integer(comp$NumberAnalysed[2])
-          df[i,'ComparatorName'] = as.character(comp$TreatmentName[1])
-          df[i,'TreatmentName'] = as.character(comp$TreatmentName[2])
-        }
-      }
-    }
-
-    #rearrange binary data
-    if (dataType == 'binary') {
-      #set up a temporary data frame
-      df = dplyr::data_frame(
-        StudyName = NA, study = NA, comparator = NA, treatment = NA,
-        NumberEventsComparator = NA, NumberAnalysedComparator = NA,
-        NumberEventsTreatment = NA, NumberAnalysedTreatment = NA,
-        ComparatorName = NA, TreatmentName = NA
-      )
-
-      #loop through the set of comparisons and rearrange the data
-      for (i in 1:ncol(comparisons)) {
-        comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
+    #loop through the set of comparisons and rearrange the data
+    for (i in 1:ncol(comparisons)) {
+      #handle generic columns first. Same for all data types
+      comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
+      if (dataType == 'treatment difference' && !anyNA(comp$diff)) {
+        next #exception for three arm studies. Usually only two effects reported
+      } else {
         df[i,'StudyName'] = as.character(comp$StudyName[1])
         df[i,'study'] = as.integer(s)
         df[i,'treatment'] = as.integer(comp$treatment[2])
         df[i,'comparator'] = as.integer(comp$treatment[1])
-        df[i,'NumberEventsComparator'] = as.integer(comp$responders[1])
         df[i,'NumberAnalysedComparator'] = as.integer(comp$sampleSize[1])
-        df[i,'NumberEventsTreatment'] = as.integer(comp$responders[2])
         df[i,'NumberAnalysedTreatment'] = as.integer(comp$sampleSize[2])
         df[i,'ComparatorName'] = as.character(comp$TreatmentName[1])
         df[i,'TreatmentName'] = as.character(comp$TreatmentName[2])
-      }
-    }
-
-    if (dataType == 'continuous') {
-      #set up a temporary data frame
-      df = dplyr::data_frame(
-        StudyName = NA, study = NA, comparator = NA, treatment = NA,
-        MeanComparator = NA, SDComparator = NA, sampleSizeComparator = NA,
-        MeanTreatment = NA, SDTreatment = NA, sampleSizeTreatment = NA,
-        ComparatorName = NA, TreatmentName = NA
-      )
-
-      #loop through the set of comparisons and rearrange the data
-      for (i in 1:ncol(comparisons)) {
-        comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
-        df[i,'StudyName'] = as.character(comp$StudyName[1])
-        df[i,'study'] = as.integer(s)
-        df[i,'treatment'] = as.integer(comp$treatment[2])
-        df[i,'comparator'] = as.integer(comp$treatment[1])
-        df[i,'MeanComparator'] = as.numeric(comp$mean[1])
-        df[i,'SDComparator'] = as.numeric(comp$std.dev[1])
-        df[i, 'sampleSizeComparator'] = as.integer(comp$sampleSize[1])
-        df[i,'MeanTreatment'] = as.numeric(comp$mean[2])
-        df[i,'SDTreatment'] = as.numeric(comp$std.dev[2])
-        df[i, 'sampleSizeTreatment'] = as.integer(comp$sampleSize[2])
-        df[i,'ComparatorName'] = as.character(comp$TreatmentName[1])
-        df[i,'TreatmentName'] = as.character(comp$TreatmentName[2])
+        if (dataType == 'treatment difference') {
+          #only report the direct comparisons as reported in the data
+          # if (any(is.na(comp$diff))) {
+          df[i,'diff'] = comp$diff[2]
+          df[i,'std.err'] = comp$std.err[2]
+          df = dplyr::select(
+            df, 1:4, diff, std.err,
+            NumberAnalysedComparator, NumberAnalysedTreatment,
+            ComparatorName, TreatmentName
+          )
+        }
+        if (dataType == 'binary') {
+          #binary data only
+          df[i,'NumberEventsComparator'] = as.integer(comp$responders[1])
+          df[i,'NumberEventsTreatment'] = as.integer(comp$responders[2])
+          #rearrange the column order
+          df = dplyr::select(
+            df, 1:4, NumberEventsComparator, NumberAnalysedComparator,
+            NumberEventsTreatment, NumberAnalysedTreatment,
+            ComparatorName, TreatmentName
+          )
+        }
+        if (dataType == 'continuous') {
+          #continuous data only
+          df[i,'MeanComparator'] = as.numeric(comp$mean[1])
+          df[i,'SDComparator'] = as.numeric(comp$std.dev[1])
+          df[i,'MeanTreatment'] = as.numeric(comp$mean[2])
+          df[i,'SDTreatment'] = as.numeric(comp$std.dev[2])
+          #rearrange the column order
+          df = dplyr::select(
+            df, 1:4, MeanComparator, SDComparator, NumberAnalysedComparator,
+            MeanTreatment, SDTreatment, NumberAnalysedTreatment,
+            ComparatorName, TreatmentName
+          )
+        }
       }
     }
     if (s == 1) {
@@ -378,8 +358,8 @@ doDirectMeta = function(df, effectCode, dataType, backtransf = FALSE, method =
     if (dataType == 'continuous') {
       #Analysis of continuous data provided as Mean and SD
       directRes = meta::metacont(
-        n.e = comp$sampleSizeTreatment, mean.e = comp$MeanTreatment, sd.e = comp$SDTreatment,
-        n.c = comp$sampleSizeComparator, mean.c = comp$MeanComparator, sd.c = comp$SDComparator,
+        n.e = comp$NumberAnalysedTreatment, mean.e = comp$MeanTreatment, sd.e = comp$SDTreatment,
+        n.c = comp$NumberAnalysedComparator, mean.c = comp$MeanComparator, sd.c = comp$SDComparator,
         sm = effectCode, studlab = comp$StudyName, label.e = comp$TreatmentName,
         label.c = comp$ComparatorName
       )
