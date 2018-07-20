@@ -20,4 +20,3 @@ Summarise diagnostic accuracy data in a convenient format
 \seealso{
 \code{extractDACC}, \code{\link[mada]{madad}}
 }
-

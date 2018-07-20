@@ -30,4 +30,3 @@ This function takes the output from a fit of the Reitsma bivariate
 \seealso{
 \code{\link[mada]{reitsma}}, \code{\link[mada]{SummaryPts}}
 }
-

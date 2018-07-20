@@ -54,4 +54,3 @@ This is a simple filtering function to return all treatment
 \seealso{
 \code{\link{extractMTCResults}}
 }
-

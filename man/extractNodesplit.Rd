@@ -36,4 +36,3 @@ This function takes the output from the function mtc.nodesplit and
 \seealso{
 \code{\link[gemtc]{mtc.nodesplit}}
 }
-

@@ -73,4 +73,3 @@ This function extracts the results of a meta-analysis from a
 \seealso{
 \code{\link[meta]{metagen}}, \code{\link[meta]{metabin}}
 }
-

@@ -52,4 +52,3 @@ This function should most commonly be used with the output from
 \code{\link{extractTOI}}, \code{\link[ggplot2]{geom_point}},
   \code{\link[ggplot2]{geom_errorbarh}}
 }
-

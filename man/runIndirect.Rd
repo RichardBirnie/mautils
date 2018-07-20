@@ -83,4 +83,3 @@ This function performs indirect meta-analysis using the Bucher
 \seealso{
 \code{\link{doBucher}}, \code{\link{runDirect}}
 }
-

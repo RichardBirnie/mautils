@@ -39,5 +39,5 @@ Imports:
     XLConnect (>= 0.2-15)
 Depends:
     gemtc (>= 0.7)
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Suggests: testthat

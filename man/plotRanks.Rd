@@ -26,4 +26,3 @@ This function takes a data frame of ranking probabilities for each
 \seealso{
 \code{\link{extractRanks}}, \code{\link[gemtc]{rank.probability}}
 }
-

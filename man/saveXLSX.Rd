@@ -74,4 +74,3 @@ overwrite=FALSE)
 \seealso{
 \code{\link[xlsx]{write.xlsx}}
 }
-

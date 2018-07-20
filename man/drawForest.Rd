@@ -39,4 +39,3 @@ This function provides a very simple wrapper around \code{forest}
 \seealso{
 \code{\link[meta]{forest}}
 }
-

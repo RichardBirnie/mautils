@@ -47,4 +47,3 @@ This function will draw a summary ROC curve based on a fit of the
 \seealso{
 \code{\link[mada]{reitsma-class}}
 }
-

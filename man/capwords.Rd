@@ -22,4 +22,3 @@ capwords('one two')
  have one word each
 capwords(c('one two', 'three', 'four'))
 }
-

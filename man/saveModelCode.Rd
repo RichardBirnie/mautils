@@ -25,4 +25,3 @@ The \code{mtc.run} function automatically generates JAGS code to
 \seealso{
 \code{\link[gemtc]{mtc.run}}
 }
-

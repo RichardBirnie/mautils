@@ -14,4 +14,3 @@ need to be fitted for the same data set. The functions provided are mainly
 simple wrappers around functions from the meta package for direct
 meta-analysis or the gemtc package for network meta-analysis.
 }
-

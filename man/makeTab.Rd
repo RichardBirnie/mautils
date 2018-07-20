@@ -48,4 +48,3 @@ This function takes a data frame as returned by
 \seealso{
 \code{\link{extractMTCResults}}, \code{\link{nameTreatments}}
 }
-

@@ -26,4 +26,3 @@ Create pdf files of some basic diagnostic plots to check the
 \seealso{
 \code{\link[ggmcmc]{ggmcmc}}
 }
-

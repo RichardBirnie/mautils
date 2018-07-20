@@ -104,4 +104,3 @@ This function runs direct head to head meta-analysis for all
 \code{\link{formatDataToDirectMA}}, \code{\link{doDirectMeta}},
   \code{\link{drawForest}}, \code{\link{extractDirectRes}}
 }
-

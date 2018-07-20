@@ -35,4 +35,3 @@ This function will calculate the I-squared heterogeneity statistic
 \seealso{
 \code{\link[meta]{metaprop}}, \code{\link[meta]{metagen}}
 }
-

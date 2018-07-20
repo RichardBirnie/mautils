@@ -10,8 +10,7 @@ extractMTCResults(res, resultsFile, includesPlacebo = FALSE, ...)
 \item{res}{A \code{mtc.results} object as returned by \code{mtc.run}}
 
 \item{resultsFile}{A character string indicating the path to the excel file
-where the results should be saved. This is passed on directly to
-\code{\link[rbutils]{saveXLSX}}}
+where the results should be saved.}
 
 \item{includesPlacebo}{Logical indicating whether the network includes
 placebo. This requires slightly different handling internally as placebo is
@@ -70,9 +69,8 @@ This function takes an object of class \code{mtc.result} and
   }
 }
 \seealso{
-\code{\link[gemtc]{mtc.run}}, \code{\link[rbutils]{saveXLSX}},
+\code{\link[gemtc]{mtc.run}},
   \code{\link{calcAllPairs}}, \code{\link{extractComparison}},
   \code{\link{nameTreatments}}, \code{\link{makeTab}},
   \code{\link{extractModelFit}}
 }
-

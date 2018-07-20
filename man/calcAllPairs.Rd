@@ -38,4 +38,3 @@ This function takes a \code{mtc.results} object and extracts summary
 \code{\link[gemtc]{mtc.run}}, \code{\link[gemtc]{relative.effect}}
   \code{\link{extractMTCResults}}, \code{\link{extractModelFit}}
 }
-

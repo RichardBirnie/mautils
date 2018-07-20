@@ -19,4 +19,3 @@ This function extends the plot method for reitsma objects from the mada package
 \seealso{
 \code{\link[mada]{reitsma-class}} for details of the other arguments
 }
-

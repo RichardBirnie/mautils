@@ -20,4 +20,3 @@ This function extends the forestmada function from the mada package
 \seealso{
 \code{\link[mada]{forest}} for details of the other arguments
 }
-

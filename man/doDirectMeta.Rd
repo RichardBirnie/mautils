@@ -46,4 +46,3 @@ This function provides a wrapper around the \code{metagen} or
 \code{\link{formatDataToDirectMA}}, \code{\link[meta]{metagen}},
   \code{\link[meta]{metabin}}
 }
-

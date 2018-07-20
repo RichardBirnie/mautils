@@ -77,4 +77,3 @@ This function performs indirect meta-analysis for all possible
 \code{\link{bucher}}, \code{\link{doDirectMeta}},
   \code{\link{extractDirectRes}}
 }
-

@@ -44,4 +44,3 @@ This function takes the output from running an MTC model using
 \seealso{
 \code{\link[gemtc]{mtc.run}}
 }
-

@@ -23,4 +23,3 @@ iris = factorToCharacter(iris)
 class(iris$Species)
 [1] "character"
 }
-

@@ -28,4 +28,3 @@ In the summary output from a network meta-analysis treatment
 \seealso{
 \code{\link{calcAllPairs}}, \code{\link{extractMTCResults}}
 }
-

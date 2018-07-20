@@ -34,4 +34,3 @@ This function matches the coded treatment id numbers in the network
 \seealso{
 \code{\link{extractComparison}}, \code{\link{calcAllPairs}}, \code{\link{extractMTCResults}}
 }
-

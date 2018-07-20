@@ -34,4 +34,3 @@ meta-analysis
 \seealso{
 \code{\link[gemtc]{mtc.network}}
 }
-

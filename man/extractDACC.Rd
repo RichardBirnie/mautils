@@ -26,4 +26,3 @@ Extract descriptive accuracy results from the output of \code{madad}
 \seealso{
 \code{\link[mada]{madad}}
 }
-

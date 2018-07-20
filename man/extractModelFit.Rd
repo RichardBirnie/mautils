@@ -27,4 +27,3 @@ This function returns model comparison statistics (DIC, pD, Dbar)
 \seealso{
 \code{\link{extractMTCResults}}, \code{\link[gemtc]{mtc.run}}
 }
-

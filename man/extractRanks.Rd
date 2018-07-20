@@ -25,4 +25,3 @@ This function takes the ranking probablilities returned by \code{rank.probabilit
 \seealso{
 \code{\link[gemtc]{rank.probability}}
 }
-

@@ -91,4 +91,3 @@ Calculate an indirect estimate of the relative effect of two
 \seealso{
 \code{\link{doBucher}}
 }
-

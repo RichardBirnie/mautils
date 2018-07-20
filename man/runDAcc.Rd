@@ -27,4 +27,3 @@ identifies this analysis. This is used in filenames so keep it short.}
 Perform meta-analysis of diagnostic accuracy data using the Reitsma bivariate
 model
 }
-
