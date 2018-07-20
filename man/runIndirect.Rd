@@ -27,8 +27,9 @@ the set of comparisons available in the data set}
 provided. Currently only 'treatment difference' or 'binary' are supported}
 
 \item{direct_results}{A data frame containing the results of direct
-meta-analysis as returned by \code{runDirect}. These results are required
-to provide the inputs for the indirect comparisons}
+meta-analysis. These results are required to provide the inputs for the
+indirect comparisons. The best way to produce this is to use the tools for
+direct meta-analysis from this package}
 
 \item{continuous}{Logical (TRUE/FALSE) indicating whether the effect measure
 is continuous (mean difference) or a ratio measure (odds ratio, hazard
@@ -76,10 +77,10 @@ This function performs indirect meta-analysis using the Bucher
 
   The inputs for this function will usually be the results from direct
   meta-analysis for a given set of treatments. The recommended workflow is
-  to use \code{\link{runDirect}} to perform head to head meta-analysis for
+  to use the tools from this package to perform head to head meta-analysis for
   a given set of treatments then use the resulting data frame to provide
   the inputs for this function.
 }
 \seealso{
-\code{\link{doBucher}}, \code{\link{runDirect}}
+\code{\link{doBucher}}
 }

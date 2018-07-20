@@ -17,8 +17,9 @@
 #' @param data_type A character string specifying which type of data has been
 #'   provided. Currently only 'treatment difference' or 'binary' are supported
 #' @param direct_results A data frame containing the results of direct
-#'   meta-analysis as returned by \code{runDirect}. These results are required
-#'   to provide the inputs for the indirect comparisons
+#'   meta-analysis. These results are required to provide the inputs for the
+#'   indirect comparisons. The best way to produce this is to use the tools for
+#'   direct meta-analysis from this package
 #' @param continuous Logical (TRUE/FALSE) indicating whether the effect measure
 #'   is continuous (mean difference) or a ratio measure (odds ratio, hazard
 #'   ratio etc). This is passed directly to \code{doBucher} and then to
@@ -52,7 +53,7 @@
 #'
 #'   The inputs for this function will usually be the results from direct
 #'   meta-analysis for a given set of treatments. The recommended workflow is
-#'   to use \code{\link{runDirect}} to perform head to head meta-analysis for
+#'   to use the tools from this package to perform head to head meta-analysis for
 #'   a given set of treatments then use the resulting data frame to provide
 #'   the inputs for this function.
 #'
@@ -60,7 +61,7 @@
 #'   comparisons in the data set. The help page for \code{\link{doBucher}}
 #'   provides a detailed description of the columns in the output
 #'
-#' @seealso \code{\link{doBucher}}, \code{\link{runDirect}}
+#' @seealso \code{\link{doBucher}}
 #' @export
 runIndirect = function(df, data_type, direct_results, continuous=FALSE,
                        effect_type = 'all', back_calc = FALSE,
