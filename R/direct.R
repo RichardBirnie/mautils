@@ -200,7 +200,7 @@ formatDataToDirectMA = function(input.df, dataType) {
 
       #loop through the set of comparisons and rearrange the data
       for (i in 1:ncol(comparisons)) {
-        comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
+        comp = dplyr::filter(study, treatment %in% comparisons[,i])
 
         #only report the direct comparisons as reported in the data
         if (any(is.na(comp$diff))) {
@@ -584,7 +584,7 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
 
   #forest plot
   meta::forest(
-    meta, hetlab = NULL, text.I2 = 'I-sq', text.tau2 = 'tau-sq', xlim = xlimits,
+    meta, hetlab = NULL, xlim = xlimits,
     comb.fixed = showFixed, comb.random = showRandom, lty.fixed = 0,
     lty.random = 0, just.studlab = 'right', fontsize = 10, ...
   )
