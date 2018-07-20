@@ -639,8 +639,7 @@ extractModelFit = function(mtcRes) {
 #'
 #' @param res A \code{mtc.results} object as returned by \code{mtc.run}
 #' @param resultsFile A character string indicating the path to the excel file
-#'   where the results should be saved. This is passed on directly to
-#'   \code{\link[rbutils]{saveXLSX}}
+#'   where the results should be saved.
 #' @param includesPlacebo Logical indicating whether the network includes
 #'   placebo. This requires slightly different handling internally as placebo is
 #'   always the comparator and never the intervention
@@ -692,7 +691,7 @@ extractModelFit = function(mtcRes) {
 #'   'Order'. See above. Passed to \code{makeTab}
 #'   }
 #'
-#' @seealso \code{\link[gemtc]{mtc.run}}, \code{\link[rbutils]{saveXLSX}},
+#' @seealso \code{\link[gemtc]{mtc.run}},
 #'   \code{\link{calcAllPairs}}, \code{\link{extractComparison}},
 #'   \code{\link{nameTreatments}}, \code{\link{makeTab}},
 #'   \code{\link{extractModelFit}}
@@ -701,39 +700,30 @@ extractModelFit = function(mtcRes) {
 extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
   #calculate all pairwise effects
   pairwiseResults = calcAllPairs(res, ...)
-  saveXLSX(
-    as.data.frame(pairwiseResults), file = resultsFile, sheetName = 'Raw',
-    showNA = FALSE, row.names = FALSE, append = TRUE
-  )
 
   #extract the comparison info
   #map treatment names to numbers
   pairwiseResults = extractComparison(pairwiseResults)
   pairwiseResults = nameTreatments(pairwiseResults, ...)
-  saveXLSX(
-    as.data.frame(pairwiseResults), file = resultsFile,
-    sheetName = 'ProcessedAll', showNA = FALSE,
-    row.names = FALSE, append = TRUE
-  )
+  XLConnect::writeWorksheetToFile(file = resultsFile, data = as.data.frame(pairwiseResults),
+                                  sheet = 'AllComparisons', clearSheets = TRUE)
 
   #make a table of all pairwise comparisons and save it as an excel file
-  #ALWAYS APPEND=TRUE OR YOU WILL OVERWRITE THE EXISTING RESULTS
   reportTab = makeTab(results = pairwiseResults, ...)
   if (includesPlacebo) {
     reportTab = dplyr::select(reportTab,-matches('Placebo')) #drop the placebo column
   }
-  rt = as.data.frame(reportTab, check.names = FALSE)
-  saveXLSX(
-    rt, file = resultsFile, sheetName = 'Report', row.names = TRUE,
-    showNA = FALSE, append = TRUE
-  )
+  rt = as.data.frame(reportTab, check.names = FALSE) %>%
+    tibble::rownames_to_column(var = 'Comparator')
+
+  XLConnect::writeWorksheetToFile(file = resultsFile, data = as.data.frame(rt),
+                                  sheet = 'Report', clearSheets = TRUE)
 
   #extract and save the model fit information
-  modelFit = extractModelFit(res)
-  saveXLSX(
-    modelFit, file = resultsFile, sheetName = 'DIC', showNA = FALSE,
-    row.names = TRUE, append = TRUE
-  )
+  modelFit = extractModelFit(res) %>%
+    tibble::rownames_to_column(var = 'Parameter')
+  XLConnect::writeWorksheetToFile(file = resultsFile, data = as.data.frame(modelFit),
+                                  sheet = 'DIC', clearSheets = TRUE)
 
   return(pairwiseResults)
 }
