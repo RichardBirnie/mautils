@@ -72,7 +72,7 @@ formatDataToDirectMA = function(input.df, dataType) {
 
       #loop through the set of comparisons and rearrange the data
       for (i in 1:ncol(comparisons)) {
-        comp = dplyr::filter(study, study$treatment %in% comparisons[,i])
+        comp = dplyr::filter(study, treatment %in% comparisons[,i])
         df[i,'StudyName'] = as.character(comp$StudyName[1])
         df[i,'study'] = as.integer(s)
         df[i,'treatment'] = as.integer(comp$treatment[2])
