@@ -344,12 +344,15 @@ extractDirectRes = function(metaRes, effect, intervention = 'Int',
     'method.tau' = res$method.tau, 'I.sq' = res$I2, 'n.studies' = res$k,
     'studies' = studies, stringsAsFactors = FALSE
   )
-
   #re-arrange the output columns into a more report friendly order
   #for future versions consider adapting this to use dplyr and select by
   #name instead of position.
   if (effect != 'Mean Difference') {
-    df = df[,c(5, 1, 3, 14:16, 22:23, 6, 2, 4, 7:13, 17:21)]
+    df = dplyr::select(
+      df, Effect, Intervention, Comparator, TE, lower, upper,
+      n.studies, studies, Model, InterventionCode, ComparatorCode,
+      z, p, level, Tau.sq, method.tau,
+      I.sq.TE, I.sq.lower, I.sq.upper, log.TE, seTE.log, log.lower, log.upper)
   } else {
     df = dplyr::select(
       df, Effect, Intervention, Comparator, TE, lower, upper,
