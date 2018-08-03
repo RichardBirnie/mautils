@@ -233,9 +233,8 @@ extractModelFit = function(mtcRes) {
 #' @param res A \code{mtc.results} object as returned by \code{mtc.run}
 #' @param resultsFile A character string indicating the path to the excel file
 #'   where the results should be saved.
-#' @param includesPlacebo Logical indicating whether the network includes
-#'   placebo. This requires slightly different handling internally as placebo is
-#'   always the comparator and never the intervention
+#' @param reference Name of the reference treatment for this analysis. This
+#'   should match the name used in the input data file exactly
 #' @param ... Additional arguments passed to underlying extractor functions,
 #'   particularly calcAllPairs, nameTreatments and makeTab
 #'
@@ -290,7 +289,7 @@ extractModelFit = function(mtcRes) {
 #'   \code{\link{extractModelFit}}
 #'
 #' @export
-extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
+extractMTCResults = function(res, resultsFile, reference, ...) {
   #calculate all pairwise effects
   pairwiseResults = calcAllPairs(res, ...)
 
@@ -303,9 +302,8 @@ extractMTCResults = function(res, resultsFile, includesPlacebo = FALSE, ...) {
 
   #make a table of all pairwise comparisons and save it as an excel file
   reportTab = makeTab(results = pairwiseResults, ...)
-  if (includesPlacebo) {
-    reportTab = dplyr::select(reportTab,-matches('Placebo')) #drop the placebo column
-  }
+  reportTab = dplyr::select(reportTab,-matches(reference)) #drop the reference column
+
   rt = as.data.frame(reportTab, check.names = FALSE) %>%
     tibble::rownames_to_column(var = 'Comparator')
 
