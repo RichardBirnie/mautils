@@ -248,7 +248,7 @@ bucher = function(abTE, se.abTE, cbTE, se.cbTE, effect, model, continuous,
   studies = c(ab.studies,cb.studies)
   studies = unique(studies)
   n.studies = length(studies)
-  studies = paste0(studies, collapse = ', ')
+  studies = paste0(studies, collapse = '; ')
 
   #tag on some labels
   df = data.frame(
