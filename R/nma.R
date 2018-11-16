@@ -649,10 +649,7 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
 
   #build the basic plot
   p = ggplot2::ggplot(df) + ggplot2::geom_point(ggplot2::aes_string(x = xvar, y = 'Order'), size = 2)
-  p = p + ggplot2::geom_errorbarh(ggplot2::aes_string(
-    x = xvar, y = 'Order', xmax = hiLimit, xmin = lowLimit
-  ),
-  height = 0.15)
+  p = p + ggplot2::geom_errorbarh(ggplot2::aes_string(y = 'Order', xmax = hiLimit, xmin = lowLimit), height = 0.15)
   p = p + ggplot2::scale_y_reverse(breaks = df[,'Order'], labels = df[,yvar], expand = c(0, 0.2))
 
 
