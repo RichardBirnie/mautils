@@ -701,8 +701,7 @@ plotEstimates = function(df, yvar, xvar = 'median', lowLimit = 'CrI_lower',
 #' @seealso \code{\link{extractRanks}}, \code{\link[gemtc]{rank.probability}}
 #' @export
 plotRanks = function(ranks) {
-  ranks = tidyr::gather(ranks[,2:ncol(ranks)], description, Probability)
-  colnames(ranks)[2] = 'Rank'
+  ranks = tidyr::gather(ranks[,2:ncol(ranks)], Rank, Probability, -description)
   p = ggplot2::ggplot(ranks) +
     ggplot2::geom_bar(
       ggplot2::aes(x = description, y = Probability, fill = Rank),
