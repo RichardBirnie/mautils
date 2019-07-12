@@ -429,7 +429,7 @@ drawForest = function(meta, showFixed = TRUE, showRandom = TRUE, ...) {
 
   #forest plot
   meta::forest(
-    meta, hetlab = NULL, xlim = xlimits,
+    meta, hetlab = '', xlim = xlimits,
     comb.fixed = showFixed, comb.random = showRandom, lty.fixed = 0,
     lty.random = 0, just.studlab = 'right', fontsize = 10, ...
   )
